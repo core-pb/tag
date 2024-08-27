@@ -34,7 +34,7 @@ func main() {
 	initDB(ctx)
 
 	go func() {
-		err := srv.ListenAndServeTLS("./server.crt", "./server.key")
+		err := srv.ListenAndServeTLS("./cert.crt", "./cert.key")
 
 		switch {
 		case errors.Is(err, http.ErrServerClosed):
