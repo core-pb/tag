@@ -19,12 +19,19 @@ jobs:
 
       - uses: bufbuild/buf-action@v1
         with:
-          format: true
+          format: false
           lint: true
           breaking: true
           push: false
           archive: false
           pr_comment: false
+
+      - uses: DoozyX/clang-format-lint-action@v0.18.1
+        with:
+          source: '.pb'
+          exclude: './lib'
+          extensions: 'proto'
+          style: '{BasedOnStyle: Google, IndentWidth: 4, AlignConsecutiveDeclarations: true, AlignConsecutiveAssignments: true, ColumnLimit: 0}'
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
