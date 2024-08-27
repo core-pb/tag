@@ -31,6 +31,8 @@ func main() {
 	mux.Handle(tagconnect.NewBaseHandler(base{}))
 	mux.Handle(tagconnect.NewRelationshipHandler(relationship{}))
 
+	startMetrics()
+
 	initDB(ctx)
 
 	go func() {
@@ -46,8 +48,12 @@ func main() {
 
 	signal.Notify(closeCh, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
+	setReadyOk()
 	sig := <-closeCh
+	setReadyFail()
+
 	if e, is := sig.(fakeSignal); is {
+		setLiveFail()
 		slog.Error("server exit", e.Attr())
 		os.Exit(1)
 		return

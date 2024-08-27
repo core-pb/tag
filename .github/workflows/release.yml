@@ -46,13 +46,30 @@ jobs:
             GIT_TAG=${{ github.ref_name }}
 
       - name: Get latest tag
+        id: get_latest_tag
         run: |
-          latest_tag=$(git tag --sort=-creatordate | head -n 1)
+          if ! command -v semver &> /dev/null; then
+            echo "Installing semver..."
+            curl -sSL https://github.com/ahmetb/semver/releases/latest/download/semver_linux_amd64 -o /usr/local/bin/semver
+            chmod +x /usr/local/bin/semver
+          fi
+
+          # Get all tags and filter for version tags
+          tags=$(git tag -l "v*")
+          latest_tag=""
+
+          # Compare tags to find the latest version
+          for tag in $tags; do
+            if [ -z "$latest_tag" ] || semver compare "$tag" "$latest_tag" > /dev/null; then
+              latest_tag="$tag"
+            fi
+          done
+
           echo "Latest tag is: $latest_tag"
           echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV
 
-      - name: Update latest tag if necessary
-        if: startsWith(github.ref_name, 'v') && github.ref_name != env.LATEST_TAG
+      - name: Update latest tag
+        if: (github.ref_name == env.LATEST_TAG || '' == env.LATEST_TAG)
         run: |
           docker tag corepbx/tag:${{ github.ref_name }} corepbx/tag:latest
           docker push corepbx/tag:latest
