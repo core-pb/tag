@@ -37,7 +37,7 @@ jobs:
 
       - name: Generate Tags
         run: |
-          latest_tag=$(git tag -l "v*" | sort -V | head -n 1)
+          latest_tag=$(git tag -l "v*" | sort -V | tail -n 1)
           echo "$latest_tag"
 
           if [ "$latest_tag" == "${{ github.ref_name }}" ]; then
