@@ -33,20 +33,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          file: build/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          tags: corepbx/tag:${{ github.ref_name }}
-          build-args: |
-            COMMIT_SHA=${{ github.sha }}
-            COMMIT_DATE=${{ github.event.head_commit.timestamp }}
-            GIT_TAG=${{ github.ref_name }}
+      - name: Generate tags
+        id: generate_tags
+        run: |
+          CURRENT_TAG=${GITHUB_REF##*/}
+          # Generate the latest tag
+          echo "Tags=${{ github.repository }}:${CURRENT_TAG},${{ github.repository }}:latest" >> $GITHUB_ENV
+          echo "Generated tags: ${{ github.repository }}:${CURRENT_TAG}, ${{ github.repository }}:latest"
 
-      - name: Get latest tag
-        id: get_latest_tag
+
+      - name: Generate Tags
         run: |
           if ! command -v semver &> /dev/null; then
             echo "Installing semver..."
@@ -64,12 +60,23 @@ jobs:
               latest_tag="$tag"
             fi
           done
+          
+          if [ "$latest_tag" == "${{ github.ref_name }}"]; then
+            echo "BUILD_TAG=corepbx/tag:${{ github.ref_name }},corepbx/tag:latest" >> $GITHUB_ENV
+          else
+            echo "BUILD_TAG=corepbx/tag:${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
 
-          echo "Latest tag is: $latest_tag"
-          echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV
+          echo "$GITHUB_ENV"
 
-      - name: Update latest tag
-        if: (github.ref_name == env.LATEST_TAG || '' == env.LATEST_TAG)
-        run: |
-          docker tag corepbx/tag:${{ github.ref_name }} corepbx/tag:latest
-          docker push corepbx/tag:latest
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          file: build/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ env.BUILD_TAG }}
+          build-args: |
+            COMMIT_SHA=${{ github.sha }}
+            COMMIT_DATE=${{ github.event.head_commit.timestamp }}
+            GIT_TAG=${{ github.ref_name }}
