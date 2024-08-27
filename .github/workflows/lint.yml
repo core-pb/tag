@@ -28,8 +28,7 @@ jobs:
 
       - uses: DoozyX/clang-format-lint-action@v0.18.1
         with:
-          source: '.pb'
-          exclude: './lib'
+          source: 'pb'
           extensions: 'proto'
           style: '{BasedOnStyle: Google, IndentWidth: 4, AlignConsecutiveDeclarations: true, AlignConsecutiveAssignments: true, ColumnLimit: 0}'
 
