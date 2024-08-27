@@ -37,23 +37,8 @@ jobs:
 
       - name: Generate Tags
         run: |
-          if ! command -v semver &> /dev/null; then
-            echo "Installing semver..."
-            curl -sSL https://github.com/ahmetb/semver/releases/latest/download/semver_linux_amd64 -o /usr/local/bin/semver
-            chmod +x /usr/local/bin/semver
-          fi
+          latest_tag=$(git tag -l "v*" | sort -V | | head -n 1)
 
-          # Get all tags and filter for version tags
-          tags=$(git tag -l "v*")
-          latest_tag=""
-
-          # Compare tags to find the latest version
-          for tag in $tags; do
-            if [ -z "$latest_tag" ] || semver compare "$tag" "$latest_tag" > /dev/null; then
-              latest_tag="$tag"
-            fi
-          done
-          
           if [ "$latest_tag" == "${{ github.ref_name }}" ]; then
             echo "BUILD_TAG=corepbx/tag:${{ github.ref_name }},corepbx/tag:latest" >> $GITHUB_ENV
           else
