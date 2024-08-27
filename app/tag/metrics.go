@@ -39,7 +39,7 @@ func startMetrics() {
 	})
 
 	go func() {
-		if err := http.ListenAndServe(":8080", mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := http.ListenAndServe(":80", mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}
 	}()
