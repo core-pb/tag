@@ -1,0 +1,182 @@
+syntax = "proto3";
+package tag.v1;
+
+import "query/v1/pagination.proto";
+import "query/v1/sort.proto";
+import "google/protobuf/struct.proto";
+import "tag/v1/module.proto";
+import "tag/v1/tag.proto";
+import "tag/v1/type.proto";
+
+option go_package = "github.com/core-pb/tag/tag/v1;tag";
+
+service Base {
+    rpc ListModule(ListModuleRequest) returns (ListModuleResponse) {}
+    rpc SetModule(SetModuleRequest) returns (SetModuleResponse) {}
+    rpc SetModuleInfo(SetModuleInfoRequest) returns (SetModuleInfoResponse) {}
+    rpc DeleteModule(DeleteModuleRequest) returns (DeleteModuleResponse) {}
+    rpc UpdateModuleVisibleType(UpdateModuleVisibleTypeRequest) returns (UpdateModuleVisibleTypeResponse) {}
+
+    rpc ListType(ListTypeRequest) returns (ListTypeResponse) {}
+    rpc SetType(SetTypeRequest) returns (SetTypeResponse) {}
+    rpc SetTypeInfo(SetTypeInfoRequest) returns (SetTypeInfoResponse) {}
+    rpc DeleteType(DeleteTypeRequest) returns (DeleteTypeResponse) {}
+    rpc UpdateTypeInherit(UpdateTypeInheritRequest) returns (UpdateTypeInheritResponse) {}
+    rpc UpdateTypeExclusive(UpdateTypeExclusiveRequest) returns (UpdateTypeExclusiveResponse) {}
+
+    rpc ListTag(ListTagRequest) returns (ListTagResponse) {}
+    rpc AddTag(AddTagRequest) returns (AddTagResponse) {}
+    rpc SetTag(SetTagRequest) returns (SetTagResponse) {}
+    rpc SetTagInfo(SetTagInfoRequest) returns (SetTagInfoResponse) {}
+    rpc DeleteTag(DeleteTagRequest) returns (DeleteTagResponse) {}
+    rpc UpdateTagType(UpdateTagTypeRequest) returns (UpdateTagTypeResponse) {}
+    rpc UpdateTagParent(UpdateTagParentRequest) returns (UpdateTagParentResponse) {}
+}
+
+message ListModuleRequest {
+    query.v1.Pagination pagination       = 1;
+    repeated query.v1.Sort sort          = 2;
+    repeated fixed64       id            = 3;
+    repeated string        key           = 4;
+    optional google.protobuf.Struct info = 5;
+}
+message ListModuleResponse {
+    repeated Module data  = 1;
+    int64           count = 2;
+}
+
+message SetModuleRequest {
+    fixed64 id  = 1;
+    string  key = 2;
+}
+message SetModuleResponse {
+    Module data = 1;
+}
+
+message SetModuleInfoRequest {
+    fixed64                id   = 1;
+    google.protobuf.Struct info = 2;
+}
+message SetModuleInfoResponse {
+    Module data = 1;
+}
+
+message UpdateModuleVisibleTypeRequest {
+    repeated fixed64 id           = 1;
+    repeated fixed64 visible_type = 2;
+}
+message UpdateModuleVisibleTypeResponse {}
+
+message DeleteModuleRequest {
+    repeated fixed64 id = 1;
+}
+message DeleteModuleResponse {}
+
+message ListTypeRequest {
+    query.v1.Pagination pagination            = 1;
+    repeated query.v1.Sort sort               = 2;
+    repeated fixed64       id                 = 3;
+    repeated string        key                = 4;
+    optional google.protobuf.Struct info      = 5;
+    optional bool                   inherit   = 6;
+    optional bool                   exclusive = 7;
+    repeated fixed64                module_id = 8;
+}
+message ListTypeResponse {
+    repeated Type data  = 1;
+    int64         count = 2;
+}
+
+message SetTypeRequest {
+    fixed64 id  = 1;
+    string  key = 2;
+}
+message SetTypeResponse {
+    Type data = 1;
+}
+
+message SetTypeInfoRequest {
+    fixed64                id   = 1;
+    google.protobuf.Struct info = 2;
+}
+message SetTypeInfoResponse {
+    Type data = 1;
+}
+
+message UpdateTypeInheritRequest {
+    repeated fixed64 id      = 1;
+    bool             inherit = 2;
+}
+message UpdateTypeInheritResponse {}
+
+message UpdateTypeExclusiveRequest {
+    repeated fixed64 id        = 1;
+    bool             exclusive = 2;
+}
+message UpdateTypeExclusiveResponse {}
+
+message DeleteTypeRequest {
+    repeated fixed64 id = 1;
+}
+message DeleteTypeResponse {}
+
+message ListTagRequest {
+    query.v1.Pagination pagination            = 1;
+    repeated query.v1.Sort sort               = 2;
+    repeated fixed64       id                 = 3;
+    repeated string        key                = 4;
+    repeated fixed64       type_id            = 5;
+    repeated fixed64       parent_id          = 6;
+    optional google.protobuf.Struct data      = 7;
+    optional google.protobuf.Struct info      = 8;
+    repeated fixed64                module_id = 9;
+}
+message ListTagResponse {
+    repeated Tag data  = 1;
+    int64        count = 2;
+}
+
+message AddTagRequest {
+    fixed64                id        = 1;
+    string                 key       = 2;
+    fixed64                type_id   = 3;
+    fixed64                parent_id = 4;
+    google.protobuf.Struct data      = 5;
+    google.protobuf.Struct info      = 6;
+}
+message AddTagResponse {
+    Tag data = 1;
+}
+
+message SetTagRequest {
+    fixed64                id   = 1;
+    google.protobuf.Struct data = 2;
+}
+message SetTagResponse {
+    Tag data = 1;
+}
+
+message SetTagInfoRequest {
+    fixed64                id   = 1;
+    google.protobuf.Struct info = 2;
+}
+message SetTagInfoResponse {
+    Tag data = 1;
+}
+
+message UpdateTagTypeRequest {
+    repeated fixed64 id      = 1;
+    fixed64          type_id = 2;
+}
+message UpdateTagTypeResponse {}
+
+message UpdateTagParentRequest {
+    repeated fixed64 id        = 1;
+    fixed64          parent_id = 2;
+}
+message UpdateTagParentResponse {}
+
+message DeleteTagRequest {
+    repeated fixed64 id = 1;
+}
+message DeleteTagResponse {}

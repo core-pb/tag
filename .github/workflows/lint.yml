@@ -1,0 +1,33 @@
+name: Lint
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+
+      - run: go version
+      - run: diff -u <(echo -n) <(gofmt -d .)
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          format: true
+          lint: true
+          breaking: true
+          push: false
+          archive: false
+          pr_comment: false
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master

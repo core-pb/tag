@@ -1,0 +1,15 @@
+version: v2
+deps:
+  - buf.build/srikrsna/protoc-gen-gotag
+  - buf.build/core-pb/dt
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+  except:
+    - SERVICE_SUFFIX
+modules:
+  - path: pb
+    name: buf.build/core-pb/tag

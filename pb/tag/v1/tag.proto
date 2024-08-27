@@ -1,0 +1,21 @@
+syntax = "proto3";
+package tag.v1;
+
+import "google/protobuf/struct.proto";
+import "tagger/tagger.proto";
+import "time/v1/time.proto";
+
+option go_package = "github.com/core-pb/tag/tag/v1;tag";
+
+message Tag {
+    fixed64                id        = 1 [(tagger.tags) = "bun:\",pk,autoincrement\""];
+    string                 key       = 2 [(tagger.tags) = "bun:\",unique\""];
+    fixed64                type_id   = 3;
+    fixed64                parent_id = 4;
+    google.protobuf.Struct data      = 5 [(tagger.tags) = "bun:\"type:jsonb\""];
+    google.protobuf.Struct info      = 6 [(tagger.tags) = "bun:\"type:jsonb\""];
+
+    time.v1.Time created_at          = 14 [(tagger.tags) = "bun:\"type:timestamptz\""];
+    time.v1.Time updated_at          = 15 [(tagger.tags) = "bun:\"type:timestamptz\""];
+    optional time.v1.Time deleted_at = 16 [(tagger.tags) = "bun:\"type:timestamptz,soft_delete,nullzero\""];
+}

@@ -1,0 +1,59 @@
+syntax = "proto3";
+package tag.v1;
+
+import "query/v1/pagination.proto";
+import "query/v1/sort.proto";
+import "google/protobuf/struct.proto";
+import "tag/v1/relation.proto";
+
+option go_package = "github.com/core-pb/tag/tag/v1;tag";
+
+service Relationship {
+    rpc ListRelation(ListRelationRequest) returns (ListRelationResponse) {}
+    rpc SetRelation(SetRelationRequest) returns (SetRelationResponse) {}
+    rpc DeleteRelation(DeleteRelationRequest) returns (DeleteRelationResponse) {}
+
+    rpc DestroyExternalRelation(DestroyExternalRelationRequest) returns (DestroyExternalRelationResponse) {}
+    rpc DestroyTagRelation(DestroyTagRelationRequest) returns (DestroyTagRelationResponse) {}
+}
+
+message ListRelationRequest {
+    query.v1.Pagination pagination       = 1;
+    repeated query.v1.Sort sort          = 2;
+    repeated fixed64       module_id     = 3;
+    repeated fixed64       external_id   = 4;
+    repeated fixed64       tag_id        = 5;
+    repeated fixed64       source_id     = 6;
+    optional google.protobuf.Struct data = 7;
+}
+message ListRelationResponse {
+    repeated Relation data  = 1;
+    int64             count = 2;
+}
+
+message SetRelationRequest {
+    fixed64                module_id   = 1;
+    fixed64                external_id = 2;
+    fixed64                tag_id      = 3;
+    google.protobuf.Struct data        = 4;
+}
+message SetRelationResponse {}
+
+message DeleteRelationRequest {
+    fixed64 module_id   = 1;
+    fixed64 external_id = 2;
+    fixed64 tag_id      = 3;
+}
+message DeleteRelationResponse {}
+
+message DestroyExternalRelationRequest {
+    fixed64          module_id   = 1;
+    repeated fixed64 external_id = 2;
+}
+message DestroyExternalRelationResponse {}
+
+message DestroyTagRelationRequest {
+    fixed64          tag_id    = 1;
+    repeated fixed64 module_id = 2;
+}
+message DestroyTagRelationResponse {}
