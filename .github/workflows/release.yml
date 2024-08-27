@@ -38,6 +38,7 @@ jobs:
       - name: Generate Tags
         run: |
           latest_tag=$(git tag -l "v*" | sort -V | head -n 1)
+          echo "$latest_tag"
 
           if [ "$latest_tag" == "${{ github.ref_name }}" ]; then
             echo "BUILD_TAG=corepbx/tag:${{ github.ref_name }},corepbx/tag:latest" >> $GITHUB_ENV
