@@ -12,6 +12,8 @@ ldflags="-s -w"
 
 go mod download
 
-go build -buildvcs=false -ldflags "$ldflags" -o build/output/server
+cd app/tag
 
-chmod a+x build/output/*
+go build -buildvcs=false -ldflags "$ldflags" -o ../../build/output/server
+
+chmod a+x ../../build/output/*
