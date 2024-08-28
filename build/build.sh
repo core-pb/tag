@@ -12,8 +12,8 @@ ldflags="-s -w"
 
 go mod download
 
-cd app/tag
+cd serer
 
-go build -buildvcs=false -ldflags "$ldflags" -o ../../build/output/server
+go build -buildvcs=false -ldflags "$ldflags" -o ../build/output/server
 
-chmod a+x ../../build/output/*
+chmod a+x ../build/output/*

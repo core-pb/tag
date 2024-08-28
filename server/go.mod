@@ -1,8 +1,8 @@
-module github.com/core-pb/tag/app/tag
+module github.com/core-pb/tag/server
 
 go 1.23.0
 
-replace github.com/core-pb/tag => ../..
+replace github.com/core-pb/tag => ..
 
 require (
 	connectrpc.com/connect v1.16.2
