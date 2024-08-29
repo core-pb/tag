@@ -9,7 +9,7 @@ option go_package = "github.com/core-pb/tag/tag/v1;tag";
 
 message Type {
     fixed64                id        = 1 [(tagger.tags) = "bun:\",pk,autoincrement\""];
-    string                 key       = 2 [(tagger.tags) = "bun:\",unique\""];
+    string                 key       = 2;
     google.protobuf.Struct info      = 3 [(tagger.tags) = "bun:\"type:jsonb\""];
     bool                   inherit   = 4;
     bool                   exclusive = 5;

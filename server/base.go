@@ -35,6 +35,10 @@ type Relation struct {
 }
 
 func (x *Module) BeforeAppendModel(_ context.Context, query bun.Query) error {
+	if x.Module == nil {
+		x.Module = &tag.Module{}
+	}
+
 	t := time.Now()
 	switch query.(type) {
 	case *bun.InsertQuery:
@@ -51,6 +55,10 @@ func (x *Module) BeforeAppendModel(_ context.Context, query bun.Query) error {
 }
 
 func (x *Tag) BeforeAppendModel(_ context.Context, query bun.Query) error {
+	if x.Tag == nil {
+		x.Tag = &tag.Tag{}
+	}
+
 	t := time.Now()
 	switch query.(type) {
 	case *bun.InsertQuery:
@@ -67,6 +75,10 @@ func (x *Tag) BeforeAppendModel(_ context.Context, query bun.Query) error {
 }
 
 func (x *Relation) BeforeAppendModel(_ context.Context, query bun.Query) error {
+	if x.Relation == nil {
+		x.Relation = &tag.Relation{}
+	}
+
 	t := time.Now()
 	switch query.(type) {
 	case *bun.InsertQuery:
@@ -83,6 +95,10 @@ func (x *Relation) BeforeAppendModel(_ context.Context, query bun.Query) error {
 }
 
 func (x *Type) BeforeAppendModel(_ context.Context, query bun.Query) error {
+	if x.Type == nil {
+		x.Type = &tag.Type{}
+	}
+
 	t := time.Now()
 	switch query.(type) {
 	case *bun.InsertQuery:
@@ -99,6 +115,12 @@ func (x *Type) BeforeAppendModel(_ context.Context, query bun.Query) error {
 }
 
 func (*Type) AfterCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
+	if _, err := query.DB().NewCreateIndex().IfNotExists().
+		Model((*Type)(nil)).Index("idx_type_unique_key").
+		Unique().Column("key").
+		Exec(ctx); err != nil {
+		return err
+	}
 	_, err := query.DB().NewCreateIndex().IfNotExists().
 		Model((*Type)(nil)).Index("idx_type_query").
 		Column("info", "inherit", "exclusive").
@@ -107,6 +129,12 @@ func (*Type) AfterCreateTable(ctx context.Context, query *bun.CreateTableQuery) 
 }
 
 func (*Tag) AfterCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
+	if _, err := query.DB().NewCreateIndex().IfNotExists().
+		Model((*Tag)(nil)).Index("idx_tag_unique_key").
+		Unique().Column("key").
+		Exec(ctx); err != nil {
+		return err
+	}
 	_, err := query.DB().NewCreateIndex().IfNotExists().
 		Model((*Tag)(nil)).Index("idx_tag_query").
 		Column("type_id", "parent_id", "data", "info").
@@ -123,6 +151,12 @@ func (*Relation) AfterCreateTable(ctx context.Context, query *bun.CreateTableQue
 }
 
 func (*Module) AfterCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
+	if _, err := query.DB().NewCreateIndex().IfNotExists().
+		Model((*Module)(nil)).Index("idx_module_unique_key").
+		Unique().Column("key").
+		Exec(ctx); err != nil {
+		return err
+	}
 	_, err := query.DB().NewCreateIndex().IfNotExists().
 		Model((*Module)(nil)).Index("idx_module_query").
 		Column("info", "visible_type").

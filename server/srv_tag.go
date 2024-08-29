@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/core-pb/dt/time/v1"
 	v1 "github.com/core-pb/tag/tag/v1"
 	"github.com/uptrace/bun"
 )
@@ -46,6 +48,10 @@ func (base) AddTag(ctx context.Context, req *connect.Request[v1.AddTagRequest]) 
 		Info:     req.Msg.Info,
 	}}
 
+	if !isInvalidKey(req.Msg.Key) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errInvalidKey)
+	}
+
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Type{}).Where("id = ?", val.TypeId).Exists(ctx); err != nil {
 			return err
@@ -53,10 +59,12 @@ func (base) AddTag(ctx context.Context, req *connect.Request[v1.AddTagRequest]) 
 			return errors.New("type not exists")
 		}
 
-		if has, err := tx.NewSelect().Model(&Tag{}).Where("id = ?", val.ParentId).Exists(ctx); err != nil {
-			return err
-		} else if !has {
-			return errors.New("type not exists")
+		if val.ParentId != 0 {
+			if has, err := tx.NewSelect().Model(&Tag{}).Where("id = ?", val.ParentId).Exists(ctx); err != nil {
+				return err
+			} else if !has {
+				return errors.New("tag parent not exists")
+			}
 		}
 
 		_, err := db.NewInsert().Model(val).Returning("*").Exec(ctx)
@@ -88,22 +96,23 @@ func (base) SetTagInfo(ctx context.Context, req *connect.Request[v1.SetTagInfoRe
 
 func (base) DeleteTag(ctx context.Context, req *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error) {
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		if count, err := tx.NewSelect().Model(&Relation{}).Where("tag_id IN (?)", bun.In(req.Msg.Id)).Count(ctx); err != nil {
+		if has, err := tx.NewSelect().Model(&Relation{}).Where("tag_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if count != 0 {
+		} else if has {
 			return errors.New("tag exist relation")
 		}
 
-		if count, err := tx.NewSelect().Model(&Tag{}).Where("parent_id IN (?)", bun.In(req.Msg.Id)).Count(ctx); err != nil {
+		if has, err := tx.NewSelect().Model(&Tag{}).Where("parent_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if count != 0 {
+		} else if has {
 			return errors.New("tag exist child")
 		}
 
-		if _, err := db.NewDelete().Model(&Tag{}).Where("id IN (?)", bun.In(req.Msg.Id)).Exec(ctx); err != nil {
-			return err
-		}
-		return nil
+		t := time.Now()
+		_, err := tx.NewUpdate().Model(&Tag{}).Where("id IN (?)", bun.In(req.Msg.Id)).
+			Set(`deleted_at = ?, "key" = CONCAT(?, "key")`, t, fmt.Sprintf("::%d:", t.Seconds)).
+			Exec(ctx)
+		return err
 	}); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
@@ -113,25 +122,31 @@ func (base) DeleteTag(ctx context.Context, req *connect.Request[v1.DeleteTagRequ
 
 func (base) UpdateTagType(ctx context.Context, req *connect.Request[v1.UpdateTagTypeRequest]) (*connect.Response[v1.UpdateTagTypeResponse], error) {
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		if count, err := tx.NewSelect().Model(&Relation{}).Where("tag_id IN (?)", bun.In(req.Msg.Id)).Count(ctx); err != nil {
+		if has, err := tx.NewSelect().Model(&Type{}).Where("id = ?", req.Msg.TypeId).Exists(ctx); err != nil {
 			return err
-		} else if count != 0 {
+		} else if !has {
+			return errors.New("type not exists")
+		}
+
+		if has, err := tx.NewSelect().Model(&Relation{}).Where("tag_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
+			return err
+		} else if has {
 			return errors.New("tag exist relation")
 		}
 
-		if count, err := tx.NewSelect().Model(&Tag{}).Where("parent_id IN (?)", bun.In(req.Msg.Id)).Count(ctx); err != nil {
+		if has, err := tx.NewSelect().Model(&Tag{}).Where("parent_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if count != 0 {
+		} else if has {
 			return errors.New("tag exist child")
 		}
 
-		if count, err := tx.NewSelect().Model(&Tag{}).Where("id IN (?) AND parent_id <> 0", bun.In(req.Msg.Id)).Count(ctx); err != nil {
+		if has, err := tx.NewSelect().Model(&Tag{}).Where("id IN (?) AND parent_id <> 0", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if count != 0 {
+		} else if has {
 			return errors.New("tag exist parent")
 		}
 
-		if _, err := db.NewUpdate().Model(&Tag{}).Where("id IN (?)", bun.In(req.Msg.Id)).Set(`"type" = ?`, req.Msg.TypeId).Exec(ctx); err != nil {
+		if _, err := db.NewUpdate().Model(&Tag{}).Where("id IN (?)", bun.In(req.Msg.Id)).Set(`type_id = ?`, req.Msg.TypeId).Exec(ctx); err != nil {
 			return err
 		}
 		return nil
@@ -144,33 +159,35 @@ func (base) UpdateTagType(ctx context.Context, req *connect.Request[v1.UpdateTag
 
 func (base) UpdateTagParent(ctx context.Context, req *connect.Request[v1.UpdateTagParentRequest]) (*connect.Response[v1.UpdateTagParentResponse], error) {
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		if count, err := tx.NewSelect().Model(&Relation{}).Where("tag_id IN (?)", bun.In(req.Msg.Id)).Count(ctx); err != nil {
+		// TODO: for type with inheritance relationships
+		//  the relationship needs terminated
+
+		typ := new(Type)
+		if err := tx.NewSelect().Model(typ).Where("id = ?").Scan(ctx); err != nil {
 			return err
-		} else if count != 0 {
+		}
+
+		tx.NewSelect().Model(&Tag{}).Column("type_id").Where("id = ?", req.Msg.ParentId)
+
+		// type desc
+
+		if has, err := tx.NewSelect().Model(&Relation{}).Where("tag_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
+			return err
+		} else if has {
 			return errors.New("tag exist relation")
 		}
 
-		if count, err := tx.NewSelect().Model(&Tag{}).Where("parent_id IN (?)", bun.In(req.Msg.Id)).Count(ctx); err != nil {
-			return err
-		} else if count != 0 {
-			return errors.New("tag exist child")
-		}
-
-		if count, err := tx.NewSelect().Model(&Tag{}).Where("id IN (?) AND parent_id <> 0", bun.In(req.Msg.Id)).Count(ctx); err != nil {
-			return err
-		} else if count != 0 {
-			return errors.New("tag exist parent")
-		}
-
-		var pt Tag
-		if err := tx.NewSelect().Model(&pt).Where("id = ?", req.Msg.ParentId).Scan(ctx); err != nil {
-			return err
-		}
-		if err := tx.NewSelect().Model(&pt).Where("type_id = ?", pt.TypeId).Scan(ctx); err != nil {
-			return err
-		}
-		if err := CheckTagParentRecursiveLoop(ctx, tx, pt.TypeId, req.Msg.ParentId, req.Msg.Id); err != nil {
-			return err
+		if req.Msg.ParentId != 0 {
+			var pt Tag
+			if err := tx.NewSelect().Model(&pt).Where("id = ?", req.Msg.ParentId).Scan(ctx); err != nil {
+				return err
+			}
+			if err := tx.NewSelect().Model(&pt).Where("type_id = ?", pt.TypeId).Scan(ctx); err != nil {
+				return err
+			}
+			if err := CheckTagParentRecursiveLoop(ctx, tx, pt.TypeId, req.Msg.ParentId, req.Msg.Id); err != nil {
+				return err
+			}
 		}
 
 		if _, err := db.NewUpdate().Model(&Tag{}).Where("id IN (?)", bun.In(req.Msg.Id)).Set(`"parent_id" = ?`, req.Msg.ParentId).Exec(ctx); err != nil {
@@ -181,7 +198,7 @@ func (base) UpdateTagParent(ctx context.Context, req *connect.Request[v1.UpdateT
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Base.UpdateTagParent is not implemented"))
+	return connect.NewResponse(&v1.UpdateTagParentResponse{}), nil
 }
 
 func CheckTagParentRecursiveLoop(ctx context.Context, tx bun.Tx, typeID, checkID uint64, targetID []uint64) error {

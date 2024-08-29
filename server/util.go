@@ -4,11 +4,29 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/core-pb/dt/query/v1"
 	"github.com/uptrace/bun"
+	"go.x2ox.com/sorbifolia/pyrokinesis"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+var errInvalidKey = errors.New("invalid key")
+
+func isInvalidKey(key string) bool {
+	b := pyrokinesis.String.ToBytes(key)
+
+	switch {
+	case len(b) < 3:
+	case !utf8.Valid(b):
+	case b[0] == ':':
+
+	default:
+		return false
+	}
+	return true
+}
 
 var ErrPageTooBig = errors.New("page too big")
 

@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	connectrpc.com/connect v1.16.2
-	github.com/core-pb/dt v1.1.0
+	github.com/core-pb/dt v1.1.1
 	github.com/srikrsna/protoc-gen-gotag v1.0.2
 	google.golang.org/protobuf v1.34.2
 )

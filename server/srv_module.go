@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/core-pb/dt/time/v1"
 	v1 "github.com/core-pb/tag/tag/v1"
 	"github.com/core-pb/tag/tag/v1/tagconnect"
 	"github.com/uptrace/bun"
@@ -34,8 +38,25 @@ func (base) ListModule(ctx context.Context, req *connect.Request[v1.ListModuleRe
 }
 
 func (base) SetModule(ctx context.Context, req *connect.Request[v1.SetModuleRequest]) (*connect.Response[v1.SetModuleResponse], error) {
+	if !isInvalidKey(req.Msg.Key) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errInvalidKey)
+	}
+
 	var val Module
-	if _, err := db.NewUpdate().Model(&val).Where("id = ?", req.Msg.Id).Set("key = ?", req.Msg.Key).Returning("*").Exec(ctx); err != nil {
+	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if req.Msg.Id != 0 {
+			_, err := tx.NewUpdate().Returning("*").Model(&val).Where("id = ?", req.Msg.Key).Set(`"key" = ?`, req.Msg.Key).Exec(ctx)
+			return err
+		}
+
+		if err := tx.NewSelect().Model(&val).Where(`"key" = ?`, req.Msg.Key).Scan(ctx); err == nil || !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+
+		val.Module = &v1.Module{Key: req.Msg.Key}
+		_, err := tx.NewInsert().Model(&val).Exec(ctx)
+		return err
+	}); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
@@ -52,7 +73,19 @@ func (base) SetModuleInfo(ctx context.Context, req *connect.Request[v1.SetModule
 }
 
 func (base) DeleteModule(ctx context.Context, req *connect.Request[v1.DeleteModuleRequest]) (*connect.Response[v1.DeleteModuleResponse], error) {
-	if _, err := db.NewDelete().Model(&Module{}).Where("id IN (?)", bun.In(req.Msg.Id)).Exec(ctx); err != nil {
+	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if has, err := tx.NewSelect().Model(&Relation{}).Where("module_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
+			return err
+		} else if has {
+			return errors.New("relation has use module")
+		}
+
+		t := time.Now()
+		_, err := tx.NewUpdate().Model(&Module{}).Where("id IN (?)", bun.In(req.Msg.Id)).
+			Set(`deleted_at = ?, "key" = CONCAT(?, "key")`, t, fmt.Sprintf("::%d:", t.Seconds)).
+			Exec(ctx)
+		return err
+	}); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 

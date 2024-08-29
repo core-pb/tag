@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/core-pb/dt/time/v1"
 	v1 "github.com/core-pb/tag/tag/v1"
 	"github.com/uptrace/bun"
 )
@@ -42,8 +45,25 @@ func (base) ListType(ctx context.Context, req *connect.Request[v1.ListTypeReques
 }
 
 func (base) SetType(ctx context.Context, req *connect.Request[v1.SetTypeRequest]) (*connect.Response[v1.SetTypeResponse], error) {
+	if !isInvalidKey(req.Msg.Key) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errInvalidKey)
+	}
+
 	var val Type
-	if _, err := db.NewUpdate().Model(&val).Where("id = ?", req.Msg.Id).Set("key = ?", req.Msg.Key).Returning("*").Exec(ctx); err != nil {
+	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if req.Msg.Id != 0 {
+			_, err := tx.NewUpdate().Returning("*").Model(&val).Where("id = ?", req.Msg.Key).Set(`"key" = ?`, req.Msg.Key).Exec(ctx)
+			return err
+		}
+
+		if err := tx.NewSelect().Model(&val).Where(`"key" = ?`, req.Msg.Key).Scan(ctx); err == nil || !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+
+		val.Type = &v1.Type{Key: req.Msg.Key}
+		_, err := tx.NewInsert().Model(&val).Exec(ctx)
+		return err
+	}); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
@@ -63,11 +83,14 @@ func (base) DeleteType(ctx context.Context, req *connect.Request[v1.DeleteTypeRe
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if !has {
+		} else if has {
 			return errors.New("tag has use type")
 		}
 
-		_, err := tx.NewDelete().Model(&Type{}).Where("id IN (?)", bun.In(req.Msg.Id)).Exec(ctx)
+		t := time.Now()
+		_, err := tx.NewUpdate().Model(&Type{}).Where("id IN (?)", bun.In(req.Msg.Id)).
+			Set(`deleted_at = ?, "key" = CONCAT(?, "key")`, t, fmt.Sprintf("::%d:", t.Seconds)).
+			Exec(ctx)
 		return err
 	}); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
@@ -80,14 +103,14 @@ func (base) UpdateTypeInherit(ctx context.Context, req *connect.Request[v1.Updat
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if !has {
+		} else if has {
 			return errors.New("tag has use type")
 		}
 
 		if has, err := tx.NewSelect().Model(&Tag{}).Join(`INNER JOIN "relation" ON tag.id = relation.tag_id`).
 			Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if !has {
+		} else if has {
 			return errors.New("type's tag has relation")
 		}
 
@@ -104,14 +127,14 @@ func (base) UpdateTypeExclusive(ctx context.Context, req *connect.Request[v1.Upd
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if !has {
+		} else if has {
 			return errors.New("tag has use type")
 		}
 
 		if has, err := tx.NewSelect().Model(&Tag{}).Join(`INNER JOIN "relation" ON tag.id = relation.tag_id`).
 			Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
-		} else if !has {
+		} else if has {
 			return errors.New("type's tag has relation")
 		}
 

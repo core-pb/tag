@@ -1,7 +1,7 @@
 connectrpc.com/connect v1.16.2 h1:ybd6y+ls7GOlb7Bh5C8+ghA6SvCBajHwxssO2CGFjqE=
 connectrpc.com/connect v1.16.2/go.mod h1:n2kgwskMHXC+lVqb18wngEpF95ldBHXjZYJussz5FRc=
-github.com/core-pb/dt v1.1.0 h1:wmO7iYFPuAyc+Qob4a7+Hqb0aP5AGQ0jOdN4xj1NIQk=
-github.com/core-pb/dt v1.1.0/go.mod h1:90mGtKcTtb0XP8NnQgx18TmGe0M7Mjk0aiaMe2T+8rI=
+github.com/core-pb/dt v1.1.1 h1:J9CsKPWs9Autd3pLlneNlbEHQ2KtMAFheSQWafA0dx8=
+github.com/core-pb/dt v1.1.1/go.mod h1:90mGtKcTtb0XP8NnQgx18TmGe0M7Mjk0aiaMe2T+8rI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fatih/structtag v1.2.0/go.mod h1:mBJUNpUnHmRKrKlQQlmCrh5PuhftFbNv8Ys4/aAZl94=
 github.com/golang/protobuf v1.4.0-rc.1/go.mod h1:ceaxUfeHdC40wWswd/P6IGgMaK3YpKi5j83Wpe3EHw8=
