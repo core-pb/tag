@@ -20,6 +20,7 @@ require (
 	github.com/srikrsna/protoc-gen-gotag v1.0.2 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/uptrace/bun/driver/pgdriver v1.2.1 // indirect
+	github.com/uptrace/bun/extra/bunslog v1.2.1 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/valyala/histogram v1.2.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect

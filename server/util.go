@@ -20,7 +20,7 @@ func isInvalidKey(key string) bool {
 	switch {
 	case len(b) < 3:
 	case !utf8.Valid(b):
-	case b[0] == ':':
+	case b[0] != ':':
 
 	default:
 		return false

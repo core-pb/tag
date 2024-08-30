@@ -159,17 +159,13 @@ func (base) UpdateTagType(ctx context.Context, req *connect.Request[v1.UpdateTag
 
 func (base) UpdateTagParent(ctx context.Context, req *connect.Request[v1.UpdateTagParentRequest]) (*connect.Response[v1.UpdateTagParentResponse], error) {
 	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		// TODO: for type with inheritance relationships
-		//  the relationship needs terminated
-
 		typ := new(Type)
-		if err := tx.NewSelect().Model(typ).Where("id = ?").Scan(ctx); err != nil {
+		if err := tx.NewSelect().Model(typ).Where(`id = (SELECT type_id FROM "tag" WHERE id = ?)`, req.Msg.ParentId).Scan(ctx); err != nil {
 			return err
 		}
-
-		tx.NewSelect().Model(&Tag{}).Column("type_id").Where("id = ?", req.Msg.ParentId)
-
-		// type desc
+		if typ.Inherit {
+			return errors.New("tag type is inheritable")
+		}
 
 		if has, err := tx.NewSelect().Model(&Relation{}).Where("tag_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err

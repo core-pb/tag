@@ -14,6 +14,7 @@ import (
 
 	"github.com/core-pb/tag/tag/v1/tagconnect"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/extra/bunslog"
 	"go.x2ox.com/sorbifolia/bunpgd"
 )
 
@@ -85,6 +86,13 @@ func initDB(ctx context.Context) {
 		slog.Error("connect db", slog.String("err", err.Error()))
 		os.Exit(1)
 	}
+
+	db.AddQueryHook(bunslog.NewQueryHook(
+		bunslog.WithQueryLogLevel(slog.LevelDebug),
+		bunslog.WithSlowQueryLogLevel(slog.LevelWarn),
+		bunslog.WithErrorQueryLogLevel(slog.LevelError),
+		bunslog.WithSlowQueryThreshold(3*time.Second),
+	))
 
 	model := []any{&Tag{}, &Type{}, &Module{}, &Relation{}}
 	db.RegisterModel(model...)
