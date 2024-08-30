@@ -12,7 +12,7 @@ ldflags="-s -w"
 
 go mod download
 
-cd serer
+cd server
 
 go build -buildvcs=false -ldflags "$ldflags" -o ../build/output/server
 
