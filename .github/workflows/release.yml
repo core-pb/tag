@@ -6,21 +6,21 @@ on:
       - "v*"
 
 jobs:
-#  buf-module:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Set up Go
-#        uses: actions/setup-go@v5
-#        with:
-#          go-version: stable
-#
-#      - uses: bufbuild/buf-action@v1
-#        with:
-#          token: ${{ secrets.BUF_TOKEN }}
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
+  buf-module:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          token: ${{ secrets.BUF_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   docker:
     runs-on: ubuntu-latest
