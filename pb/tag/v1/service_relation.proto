@@ -18,13 +18,13 @@ service Relationship {
 }
 
 message ListRelationRequest {
-    query.v1.Pagination pagination       = 1;
-    repeated query.v1.Sort sort          = 2;
-    repeated fixed64       module_id     = 3;
-    repeated fixed64       external_id   = 4;
-    repeated fixed64       tag_id        = 5;
-    repeated fixed64       source_id     = 6;
-    optional google.protobuf.Struct data = 7;
+    optional query.v1.Pagination pagination = 1;
+    repeated query.v1.Sort sort             = 2;
+    repeated fixed64       module_id        = 3;
+    repeated fixed64       external_id      = 4;
+    repeated fixed64       tag_id           = 5;
+    repeated fixed64       source_id        = 6;
+    optional google.protobuf.Struct data    = 7;
 }
 message ListRelationResponse {
     repeated Relation data  = 1;

@@ -34,11 +34,11 @@ service Base {
 }
 
 message ListModuleRequest {
-    query.v1.Pagination pagination       = 1;
-    repeated query.v1.Sort sort          = 2;
-    repeated fixed64       id            = 3;
-    repeated string        key           = 4;
-    optional google.protobuf.Struct info = 5;
+    optional query.v1.Pagination pagination = 1;
+    repeated query.v1.Sort sort             = 2;
+    repeated fixed64       id               = 3;
+    repeated string        key              = 4;
+    optional google.protobuf.Struct info    = 5;
 }
 message ListModuleResponse {
     repeated Module data  = 1;
@@ -73,7 +73,7 @@ message DeleteModuleRequest {
 message DeleteModuleResponse {}
 
 message ListTypeRequest {
-    query.v1.Pagination pagination            = 1;
+    optional query.v1.Pagination pagination   = 1;
     repeated query.v1.Sort sort               = 2;
     repeated fixed64       id                 = 3;
     repeated string        key                = 4;
@@ -121,7 +121,7 @@ message DeleteTypeRequest {
 message DeleteTypeResponse {}
 
 message ListTagRequest {
-    query.v1.Pagination pagination            = 1;
+    optional query.v1.Pagination pagination   = 1;
     repeated query.v1.Sort sort               = 2;
     repeated fixed64       id                 = 3;
     repeated string        key                = 4;

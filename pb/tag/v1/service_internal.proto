@@ -1,0 +1,49 @@
+syntax = "proto3";
+package tag.v1;
+
+import "google/protobuf/struct.proto";
+import "tag/v1/type.proto";
+
+option go_package = "github.com/core-pb/tag/tag/v1;tag";
+
+service Internal {
+    rpc GetTagIDTreeize(GetTagIDTreeizeRequest) returns (GetTagIDTreeizeResponse) {}
+
+    rpc BindRelation(BindRelationRequest) returns (BindRelationResponse) {}
+    rpc UnbindRelation(UnbindRelationRequest) returns (UnbindRelationResponse) {}
+}
+
+message GetTagIDTreeizeRequest {
+    oneof from {
+        fixed64 tag_id  = 1;
+        fixed64 type_id = 2;
+    }
+}
+message GetTagIDTreeizeResponse {
+    TagIDTreeize data = 1;
+    Type         type = 2;
+}
+message TagIDTreeize {
+    fixed64               id    = 1;
+    repeated TagIDTreeize child = 2;
+}
+
+message BindRelationRequest {
+    fixed64                module_id   = 1;
+    fixed64                external_id = 2;
+    fixed64                tag_id      = 3;
+    google.protobuf.Struct data        = 4;
+}
+message BindRelationResponse {
+    repeated fixed64 clean_tag_id   = 1;
+    repeated fixed64 inherit_tag_id = 2;
+}
+
+message UnbindRelationRequest {
+    fixed64 module_id   = 1;
+    fixed64 external_id = 2;
+    fixed64 tag_id      = 3;
+}
+message UnbindRelationResponse {
+    repeated fixed64 clean_tag_id = 1;
+}
