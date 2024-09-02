@@ -137,12 +137,11 @@ message ListTagResponse {
 }
 
 message AddTagRequest {
-    fixed64                id        = 1;
-    string                 key       = 2;
-    fixed64                type_id   = 3;
-    fixed64                parent_id = 4;
-    google.protobuf.Struct data      = 5;
-    google.protobuf.Struct info      = 6;
+    string                 key       = 1;
+    fixed64                type_id   = 2;
+    fixed64                parent_id = 3;
+    google.protobuf.Struct data      = 4;
+    google.protobuf.Struct info      = 5;
 }
 message AddTagResponse {
     Tag data = 1;

@@ -23,3 +23,51 @@ func (x *TagIDTreeize) Contains(tagID []uint64) bool {
 	}
 	return true
 }
+
+type FlatTagID struct {
+	ID       uint64 `json:"id"`
+	ParentID uint64 `json:"parent_id"`
+}
+
+func (x *TagIDTreeize) Flat() []FlatTagID {
+	return x.flatten(0)
+}
+
+func (x *TagIDTreeize) flatten(parentID uint64) []FlatTagID {
+	var items []FlatTagID
+	for _, node := range x.Child {
+		items = append(items, FlatTagID{ID: node.Id, ParentID: parentID})
+		items = append(items, node.flatten(node.Id)...)
+	}
+	return items
+}
+
+func (x *TagIDTreeize) FromFlat(arr []FlatTagID) {
+	var (
+		tree     []*TagIDTreeize
+		childMap = make(map[uint64][]*TagIDTreeize)
+	)
+
+	for _, item := range arr {
+		node := &TagIDTreeize{Id: item.ID}
+		if item.ParentID == 0 {
+			tree = append(tree, node)
+		} else {
+			childMap[item.ParentID] = append(childMap[item.ParentID], node)
+		}
+	}
+
+	var fn func(nodes []*TagIDTreeize)
+	fn = func(nodes []*TagIDTreeize) {
+		for i := range nodes {
+			if children, ok := childMap[nodes[i].Id]; ok {
+				nodes[i].Child = children
+				fn(nodes[i].Child)
+			}
+		}
+	}
+
+	fn(tree)
+	x.Id = 0
+	x.Child = tree
+}

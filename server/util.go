@@ -146,3 +146,43 @@ func QueryFormStruct(tx *bun.SelectQuery, qk string, val *structpb.Struct) *bun.
 
 	return tx
 }
+
+func defaultValue[T any](v *T) T {
+	if v == nil {
+		return *new(T)
+	}
+	return *v
+}
+
+func arrayContains[T comparable](arr1, arr2 []T) bool {
+	for _, v2 := range arr2 {
+		found := false
+		for _, v1 := range arr1 {
+			if v1 == v2 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+func arrayDifference[T comparable](arr1, arr2 []T) []T {
+	var result []T
+	for _, v1 := range arr1 {
+		found := false
+		for _, v2 := range arr2 {
+			if v1 == v2 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			result = append(result, v1)
+		}
+	}
+	return result
+}

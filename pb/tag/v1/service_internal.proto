@@ -2,7 +2,9 @@ syntax = "proto3";
 package tag.v1;
 
 import "google/protobuf/struct.proto";
+import "tag/v1/tag.proto";
 import "tag/v1/type.proto";
+import "tag/v1/module.proto";
 
 option go_package = "github.com/core-pb/tag/tag/v1;tag";
 
@@ -11,6 +13,14 @@ service Internal {
 
     rpc BindRelation(BindRelationRequest) returns (BindRelationResponse) {}
     rpc UnbindRelation(UnbindRelationRequest) returns (UnbindRelationResponse) {}
+
+    rpc GetAllByModule(GetAllByModuleRequest) returns (GetAllByModuleResponse) {}
+    rpc RegisterModule(RegisterModuleRequest) returns (RegisterModuleResponse) {}
+
+    rpc SetTypeWithModule(SetTypeWithModuleRequest) returns (SetTypeWithModuleResponse) {}
+    rpc DeleteTypeWithModule(DeleteTypeWithModuleRequest) returns (DeleteTypeWithModuleResponse) {}
+    rpc SetTagWithModule(SetTagWithModuleRequest) returns (SetTagWithModuleResponse) {}
+    rpc DeleteTagWithModule(DeleteTagWithModuleRequest) returns (DeleteTagWithModuleResponse) {}
 }
 
 message GetTagIDTreeizeRequest {
@@ -39,6 +49,16 @@ message BindRelationResponse {
     repeated fixed64 inherit_tag_id = 2;
 }
 
+message BindTagToExternalRequest {
+    fixed64          module_id   = 1;
+    fixed64          external_id = 2;
+    repeated fixed64 tag_id      = 3;
+}
+message BindTagToExternalResponse {
+    repeated fixed64 clean_tag_id   = 1;
+    repeated fixed64 inherit_tag_id = 2;
+}
+
 message UnbindRelationRequest {
     fixed64 module_id   = 1;
     fixed64 external_id = 2;
@@ -47,3 +67,53 @@ message UnbindRelationRequest {
 message UnbindRelationResponse {
     repeated fixed64 clean_tag_id = 1;
 }
+
+message GetAllByModuleRequest {
+    fixed64 module_id = 1;
+}
+message GetAllByModuleResponse {
+    repeated tag.v1.Type type = 1;
+    repeated tag.v1.Tag tag   = 2;
+}
+
+message RegisterModuleRequest {
+    string key = 1;
+}
+message RegisterModuleResponse {
+    tag.v1.Module data = 1;
+}
+
+message SetTypeWithModuleRequest {
+    fixed64          module_id                = 1;
+    optional fixed64 type_id                  = 2;  // is empty, will be add
+    optional string  key                      = 3;  // is empty, will be automatically generated
+    optional google.protobuf.Struct info      = 4;
+    optional bool                   inherit   = 5;
+    optional bool                   exclusive = 6;
+}
+message SetTypeWithModuleResponse {
+    tag.v1.Type data = 1;
+}
+
+message DeleteTypeWithModuleRequest {
+    fixed64          module_id = 1;
+    repeated fixed64 type_id   = 2;
+}
+message DeleteTypeWithModuleResponse {}
+
+message SetTagWithModuleRequest {
+    fixed64          module_id           = 1;
+    optional fixed64 tag_id              = 2;
+    optional string  key                 = 3;
+    optional fixed64 type_id             = 4;
+    optional fixed64 parent_id           = 5;
+    optional google.protobuf.Struct data = 6;
+    optional google.protobuf.Struct info = 7;
+}
+message SetTagWithModuleResponse {}
+
+message DeleteTagWithModuleRequest {
+    fixed64          module_id = 1;
+    repeated fixed64 tag_id    = 2;
+}
+message DeleteTagWithModuleResponse {}

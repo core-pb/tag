@@ -40,14 +40,36 @@ const (
 	InternalBindRelationProcedure = "/tag.v1.Internal/BindRelation"
 	// InternalUnbindRelationProcedure is the fully-qualified name of the Internal's UnbindRelation RPC.
 	InternalUnbindRelationProcedure = "/tag.v1.Internal/UnbindRelation"
+	// InternalGetAllByModuleProcedure is the fully-qualified name of the Internal's GetAllByModule RPC.
+	InternalGetAllByModuleProcedure = "/tag.v1.Internal/GetAllByModule"
+	// InternalRegisterModuleProcedure is the fully-qualified name of the Internal's RegisterModule RPC.
+	InternalRegisterModuleProcedure = "/tag.v1.Internal/RegisterModule"
+	// InternalSetTypeWithModuleProcedure is the fully-qualified name of the Internal's
+	// SetTypeWithModule RPC.
+	InternalSetTypeWithModuleProcedure = "/tag.v1.Internal/SetTypeWithModule"
+	// InternalDeleteTypeWithModuleProcedure is the fully-qualified name of the Internal's
+	// DeleteTypeWithModule RPC.
+	InternalDeleteTypeWithModuleProcedure = "/tag.v1.Internal/DeleteTypeWithModule"
+	// InternalSetTagWithModuleProcedure is the fully-qualified name of the Internal's SetTagWithModule
+	// RPC.
+	InternalSetTagWithModuleProcedure = "/tag.v1.Internal/SetTagWithModule"
+	// InternalDeleteTagWithModuleProcedure is the fully-qualified name of the Internal's
+	// DeleteTagWithModule RPC.
+	InternalDeleteTagWithModuleProcedure = "/tag.v1.Internal/DeleteTagWithModule"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	internalServiceDescriptor               = v1.File_tag_v1_service_internal_proto.Services().ByName("Internal")
-	internalGetTagIDTreeizeMethodDescriptor = internalServiceDescriptor.Methods().ByName("GetTagIDTreeize")
-	internalBindRelationMethodDescriptor    = internalServiceDescriptor.Methods().ByName("BindRelation")
-	internalUnbindRelationMethodDescriptor  = internalServiceDescriptor.Methods().ByName("UnbindRelation")
+	internalServiceDescriptor                    = v1.File_tag_v1_service_internal_proto.Services().ByName("Internal")
+	internalGetTagIDTreeizeMethodDescriptor      = internalServiceDescriptor.Methods().ByName("GetTagIDTreeize")
+	internalBindRelationMethodDescriptor         = internalServiceDescriptor.Methods().ByName("BindRelation")
+	internalUnbindRelationMethodDescriptor       = internalServiceDescriptor.Methods().ByName("UnbindRelation")
+	internalGetAllByModuleMethodDescriptor       = internalServiceDescriptor.Methods().ByName("GetAllByModule")
+	internalRegisterModuleMethodDescriptor       = internalServiceDescriptor.Methods().ByName("RegisterModule")
+	internalSetTypeWithModuleMethodDescriptor    = internalServiceDescriptor.Methods().ByName("SetTypeWithModule")
+	internalDeleteTypeWithModuleMethodDescriptor = internalServiceDescriptor.Methods().ByName("DeleteTypeWithModule")
+	internalSetTagWithModuleMethodDescriptor     = internalServiceDescriptor.Methods().ByName("SetTagWithModule")
+	internalDeleteTagWithModuleMethodDescriptor  = internalServiceDescriptor.Methods().ByName("DeleteTagWithModule")
 )
 
 // InternalClient is a client for the tag.v1.Internal service.
@@ -55,6 +77,12 @@ type InternalClient interface {
 	GetTagIDTreeize(context.Context, *connect.Request[v1.GetTagIDTreeizeRequest]) (*connect.Response[v1.GetTagIDTreeizeResponse], error)
 	BindRelation(context.Context, *connect.Request[v1.BindRelationRequest]) (*connect.Response[v1.BindRelationResponse], error)
 	UnbindRelation(context.Context, *connect.Request[v1.UnbindRelationRequest]) (*connect.Response[v1.UnbindRelationResponse], error)
+	GetAllByModule(context.Context, *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error)
+	RegisterModule(context.Context, *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error)
+	SetTypeWithModule(context.Context, *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error)
+	DeleteTypeWithModule(context.Context, *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error)
+	SetTagWithModule(context.Context, *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error)
+	DeleteTagWithModule(context.Context, *connect.Request[v1.DeleteTagWithModuleRequest]) (*connect.Response[v1.DeleteTagWithModuleResponse], error)
 }
 
 // NewInternalClient constructs a client for the tag.v1.Internal service. By default, it uses the
@@ -85,14 +113,56 @@ func NewInternalClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 			connect.WithSchema(internalUnbindRelationMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getAllByModule: connect.NewClient[v1.GetAllByModuleRequest, v1.GetAllByModuleResponse](
+			httpClient,
+			baseURL+InternalGetAllByModuleProcedure,
+			connect.WithSchema(internalGetAllByModuleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		registerModule: connect.NewClient[v1.RegisterModuleRequest, v1.RegisterModuleResponse](
+			httpClient,
+			baseURL+InternalRegisterModuleProcedure,
+			connect.WithSchema(internalRegisterModuleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		setTypeWithModule: connect.NewClient[v1.SetTypeWithModuleRequest, v1.SetTypeWithModuleResponse](
+			httpClient,
+			baseURL+InternalSetTypeWithModuleProcedure,
+			connect.WithSchema(internalSetTypeWithModuleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		deleteTypeWithModule: connect.NewClient[v1.DeleteTypeWithModuleRequest, v1.DeleteTypeWithModuleResponse](
+			httpClient,
+			baseURL+InternalDeleteTypeWithModuleProcedure,
+			connect.WithSchema(internalDeleteTypeWithModuleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		setTagWithModule: connect.NewClient[v1.SetTagWithModuleRequest, v1.SetTagWithModuleResponse](
+			httpClient,
+			baseURL+InternalSetTagWithModuleProcedure,
+			connect.WithSchema(internalSetTagWithModuleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		deleteTagWithModule: connect.NewClient[v1.DeleteTagWithModuleRequest, v1.DeleteTagWithModuleResponse](
+			httpClient,
+			baseURL+InternalDeleteTagWithModuleProcedure,
+			connect.WithSchema(internalDeleteTagWithModuleMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // internalClient implements InternalClient.
 type internalClient struct {
-	getTagIDTreeize *connect.Client[v1.GetTagIDTreeizeRequest, v1.GetTagIDTreeizeResponse]
-	bindRelation    *connect.Client[v1.BindRelationRequest, v1.BindRelationResponse]
-	unbindRelation  *connect.Client[v1.UnbindRelationRequest, v1.UnbindRelationResponse]
+	getTagIDTreeize      *connect.Client[v1.GetTagIDTreeizeRequest, v1.GetTagIDTreeizeResponse]
+	bindRelation         *connect.Client[v1.BindRelationRequest, v1.BindRelationResponse]
+	unbindRelation       *connect.Client[v1.UnbindRelationRequest, v1.UnbindRelationResponse]
+	getAllByModule       *connect.Client[v1.GetAllByModuleRequest, v1.GetAllByModuleResponse]
+	registerModule       *connect.Client[v1.RegisterModuleRequest, v1.RegisterModuleResponse]
+	setTypeWithModule    *connect.Client[v1.SetTypeWithModuleRequest, v1.SetTypeWithModuleResponse]
+	deleteTypeWithModule *connect.Client[v1.DeleteTypeWithModuleRequest, v1.DeleteTypeWithModuleResponse]
+	setTagWithModule     *connect.Client[v1.SetTagWithModuleRequest, v1.SetTagWithModuleResponse]
+	deleteTagWithModule  *connect.Client[v1.DeleteTagWithModuleRequest, v1.DeleteTagWithModuleResponse]
 }
 
 // GetTagIDTreeize calls tag.v1.Internal.GetTagIDTreeize.
@@ -110,11 +180,47 @@ func (c *internalClient) UnbindRelation(ctx context.Context, req *connect.Reques
 	return c.unbindRelation.CallUnary(ctx, req)
 }
 
+// GetAllByModule calls tag.v1.Internal.GetAllByModule.
+func (c *internalClient) GetAllByModule(ctx context.Context, req *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error) {
+	return c.getAllByModule.CallUnary(ctx, req)
+}
+
+// RegisterModule calls tag.v1.Internal.RegisterModule.
+func (c *internalClient) RegisterModule(ctx context.Context, req *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error) {
+	return c.registerModule.CallUnary(ctx, req)
+}
+
+// SetTypeWithModule calls tag.v1.Internal.SetTypeWithModule.
+func (c *internalClient) SetTypeWithModule(ctx context.Context, req *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error) {
+	return c.setTypeWithModule.CallUnary(ctx, req)
+}
+
+// DeleteTypeWithModule calls tag.v1.Internal.DeleteTypeWithModule.
+func (c *internalClient) DeleteTypeWithModule(ctx context.Context, req *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error) {
+	return c.deleteTypeWithModule.CallUnary(ctx, req)
+}
+
+// SetTagWithModule calls tag.v1.Internal.SetTagWithModule.
+func (c *internalClient) SetTagWithModule(ctx context.Context, req *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error) {
+	return c.setTagWithModule.CallUnary(ctx, req)
+}
+
+// DeleteTagWithModule calls tag.v1.Internal.DeleteTagWithModule.
+func (c *internalClient) DeleteTagWithModule(ctx context.Context, req *connect.Request[v1.DeleteTagWithModuleRequest]) (*connect.Response[v1.DeleteTagWithModuleResponse], error) {
+	return c.deleteTagWithModule.CallUnary(ctx, req)
+}
+
 // InternalHandler is an implementation of the tag.v1.Internal service.
 type InternalHandler interface {
 	GetTagIDTreeize(context.Context, *connect.Request[v1.GetTagIDTreeizeRequest]) (*connect.Response[v1.GetTagIDTreeizeResponse], error)
 	BindRelation(context.Context, *connect.Request[v1.BindRelationRequest]) (*connect.Response[v1.BindRelationResponse], error)
 	UnbindRelation(context.Context, *connect.Request[v1.UnbindRelationRequest]) (*connect.Response[v1.UnbindRelationResponse], error)
+	GetAllByModule(context.Context, *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error)
+	RegisterModule(context.Context, *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error)
+	SetTypeWithModule(context.Context, *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error)
+	DeleteTypeWithModule(context.Context, *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error)
+	SetTagWithModule(context.Context, *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error)
+	DeleteTagWithModule(context.Context, *connect.Request[v1.DeleteTagWithModuleRequest]) (*connect.Response[v1.DeleteTagWithModuleResponse], error)
 }
 
 // NewInternalHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -141,6 +247,42 @@ func NewInternalHandler(svc InternalHandler, opts ...connect.HandlerOption) (str
 		connect.WithSchema(internalUnbindRelationMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	internalGetAllByModuleHandler := connect.NewUnaryHandler(
+		InternalGetAllByModuleProcedure,
+		svc.GetAllByModule,
+		connect.WithSchema(internalGetAllByModuleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	internalRegisterModuleHandler := connect.NewUnaryHandler(
+		InternalRegisterModuleProcedure,
+		svc.RegisterModule,
+		connect.WithSchema(internalRegisterModuleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	internalSetTypeWithModuleHandler := connect.NewUnaryHandler(
+		InternalSetTypeWithModuleProcedure,
+		svc.SetTypeWithModule,
+		connect.WithSchema(internalSetTypeWithModuleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	internalDeleteTypeWithModuleHandler := connect.NewUnaryHandler(
+		InternalDeleteTypeWithModuleProcedure,
+		svc.DeleteTypeWithModule,
+		connect.WithSchema(internalDeleteTypeWithModuleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	internalSetTagWithModuleHandler := connect.NewUnaryHandler(
+		InternalSetTagWithModuleProcedure,
+		svc.SetTagWithModule,
+		connect.WithSchema(internalSetTagWithModuleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	internalDeleteTagWithModuleHandler := connect.NewUnaryHandler(
+		InternalDeleteTagWithModuleProcedure,
+		svc.DeleteTagWithModule,
+		connect.WithSchema(internalDeleteTagWithModuleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/tag.v1.Internal/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case InternalGetTagIDTreeizeProcedure:
@@ -149,6 +291,18 @@ func NewInternalHandler(svc InternalHandler, opts ...connect.HandlerOption) (str
 			internalBindRelationHandler.ServeHTTP(w, r)
 		case InternalUnbindRelationProcedure:
 			internalUnbindRelationHandler.ServeHTTP(w, r)
+		case InternalGetAllByModuleProcedure:
+			internalGetAllByModuleHandler.ServeHTTP(w, r)
+		case InternalRegisterModuleProcedure:
+			internalRegisterModuleHandler.ServeHTTP(w, r)
+		case InternalSetTypeWithModuleProcedure:
+			internalSetTypeWithModuleHandler.ServeHTTP(w, r)
+		case InternalDeleteTypeWithModuleProcedure:
+			internalDeleteTypeWithModuleHandler.ServeHTTP(w, r)
+		case InternalSetTagWithModuleProcedure:
+			internalSetTagWithModuleHandler.ServeHTTP(w, r)
+		case InternalDeleteTagWithModuleProcedure:
+			internalDeleteTagWithModuleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -168,4 +322,28 @@ func (UnimplementedInternalHandler) BindRelation(context.Context, *connect.Reque
 
 func (UnimplementedInternalHandler) UnbindRelation(context.Context, *connect.Request[v1.UnbindRelationRequest]) (*connect.Response[v1.UnbindRelationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.UnbindRelation is not implemented"))
+}
+
+func (UnimplementedInternalHandler) GetAllByModule(context.Context, *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.GetAllByModule is not implemented"))
+}
+
+func (UnimplementedInternalHandler) RegisterModule(context.Context, *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.RegisterModule is not implemented"))
+}
+
+func (UnimplementedInternalHandler) SetTypeWithModule(context.Context, *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.SetTypeWithModule is not implemented"))
+}
+
+func (UnimplementedInternalHandler) DeleteTypeWithModule(context.Context, *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.DeleteTypeWithModule is not implemented"))
+}
+
+func (UnimplementedInternalHandler) SetTagWithModule(context.Context, *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.SetTagWithModule is not implemented"))
+}
+
+func (UnimplementedInternalHandler) DeleteTagWithModule(context.Context, *connect.Request[v1.DeleteTagWithModuleRequest]) (*connect.Response[v1.DeleteTagWithModuleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.DeleteTagWithModule is not implemented"))
 }

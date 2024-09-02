@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"connectrpc.com/connect"
 	v1 "github.com/core-pb/tag/tag/v1"
@@ -109,19 +111,36 @@ func (relationship) SetRelation(ctx context.Context, req *connect.Request[v1.Set
 }
 
 func (relationship) DeleteRelation(ctx context.Context, req *connect.Request[v1.DeleteRelationRequest]) (*connect.Response[v1.DeleteRelationResponse], error) {
-	res, err := db.NewDelete().Model(&Relation{}).Where(
-		"module_id = ? AND external_id = ? AND tag_id = ?", req.Msg.ModuleId, req.Msg.ExternalId, req.Msg.TagId,
-	).Exec(ctx)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeUnavailable, err)
-	}
+	var cleanID []uint64
 
-	var rowsAffected int64
-	if rowsAffected, err = res.RowsAffected(); err != nil {
+	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if has, err := tx.NewSelect().For("UPDATE").Model(&Relation{}).Where(
+			"module_id = ? AND external_id = ? AND tag_id = ?", req.Msg.ModuleId, req.Msg.ExternalId, req.Msg.TagId,
+		).Exists(ctx); err != nil {
+			return err
+		} else if !has {
+			return nil
+		}
+
+		if err := tx.NewSelect().For("UPDATE").Model(&Relation{}).Column("tag_id").Where(
+			"module_id = ? AND external_id = ? AND source_id = ?", req.Msg.ModuleId, req.Msg.ExternalId, req.Msg.TagId,
+		).Scan(ctx, &cleanID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+
+		del := []uint64{req.Msg.TagId}
+		if len(cleanID) != 0 {
+			del = append(del, cleanID...)
+		}
+
+		if _, err := tx.NewDelete().Model(&Relation{}).Where(
+			"module_id = ? AND external_id = ? AND tag_id IN (?)", req.Msg.ModuleId, req.Msg.ExternalId, bun.In(del),
+		).Exec(ctx); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
-	}
-	if rowsAffected == 1 {
-		// flush cache
 	}
 
 	return connect.NewResponse(&v1.DeleteRelationResponse{}), nil

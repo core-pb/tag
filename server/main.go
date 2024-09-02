@@ -31,6 +31,7 @@ func main() {
 
 	mux.Handle(tagconnect.NewBaseHandler(base{}))
 	mux.Handle(tagconnect.NewRelationshipHandler(relationship{}))
+	mux.Handle(tagconnect.NewInternalHandler(itn{}))
 
 	startMetrics()
 
@@ -94,7 +95,7 @@ func initDB(ctx context.Context) {
 		bunslog.WithSlowQueryThreshold(3*time.Second),
 	))
 
-	model := []any{&Tag{}, &Type{}, &Module{}, &Relation{}}
+	model := []any{&Module{}, &Type{}, &Tag{}, &Relation{}}
 	db.RegisterModel(model...)
 
 	for _, v := range model {
