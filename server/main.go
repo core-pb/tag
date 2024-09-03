@@ -21,6 +21,7 @@ func main() {
 		server, err = crpc.NewServer(
 			crpc.WithHealthAndMetrics(":80", ""),
 			crpc.WithCertFromCheck("CERT", "cert", "../build/output/cert"),
+			crpc.WithCORS(nil),
 		)
 	)
 	if err != nil {

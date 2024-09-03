@@ -12,7 +12,7 @@ require (
 	github.com/redis/rueidis v1.0.45
 	github.com/uptrace/bun v1.2.3
 	go.x2ox.com/sorbifolia/bunpgd v0.0.0-20240903101102-0cd89d239be3
-	go.x2ox.com/sorbifolia/crpc v0.0.0-20240903103203-48b4f66ec535
+	go.x2ox.com/sorbifolia/crpc v0.0.0-20240903130246-8d62934de94c
 	go.x2ox.com/sorbifolia/pyrokinesis v0.0.0-20240903095301-c3e0f7e1163c
 	google.golang.org/protobuf v1.34.2
 )
@@ -22,6 +22,7 @@ require (
 	github.com/bufbuild/httplb v0.3.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.4.0 // indirect
+	github.com/rs/cors v1.11.1 // indirect
 	github.com/srikrsna/protoc-gen-gotag v1.0.2 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/uptrace/bun/driver/pgdriver v1.2.3 // indirect

@@ -32,7 +32,7 @@ var ErrPageTooBig = errors.New("page too big")
 
 func Pagination(tx *bun.SelectQuery, x *query.Pagination) *bun.SelectQuery {
 	if x == nil {
-		return nil
+		return tx
 	}
 
 	page, pageSize := int(x.Page), int(x.PageSize)

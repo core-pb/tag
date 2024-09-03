@@ -30,6 +30,8 @@ github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZI=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/rs/cors v1.11.1 h1:eU3gRzXLRK57F5rKMGMZURNdIG4EoAmX8k94r9wXWHA=
+github.com/rs/cors v1.11.1/go.mod h1:XyqrcTp5zjWr1wsJ8PIRZssZ8b/WMcMf71DJnit4EMU=
 github.com/spf13/afero v1.3.3/go.mod h1:5KUK8ByomD5Ti5Artl0RtHeI5pTF7MIDuXL3yY520V4=
 github.com/spf13/afero v1.5.1/go.mod h1:Ai8FlHk4v/PARR026UzYexafAt9roJ7LcLMAmO6Z93I=
 github.com/srikrsna/protoc-gen-gotag v1.0.2 h1:4okv8GlbVbvmL678VX0AobxaMkERlBbHvgWhUnbcrPM=
@@ -44,12 +46,8 @@ github.com/valyala/fastrand v1.1.0/go.mod h1:HWqCzkrkg6QXT8V2EXWvXCoow7vLwOFN002
 github.com/valyala/histogram v1.2.0 h1:wyYGAZZt3CpwUiIb9AU/Zbllg1llXyrtApRS815OLoQ=
 github.com/valyala/histogram v1.2.0/go.mod h1:Hb4kBwb4UxsaNbbbh+RRz8ZR6pdodR57tzWUS3BUzXY=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
-go.x2ox.com/sorbifolia/crpc v0.0.0-20240903101102-0cd89d239be3 h1:QXoggd5jIb2oUMVC2WzvWDR8VIByoWRD5FxnPrOjv7o=
-go.x2ox.com/sorbifolia/crpc v0.0.0-20240903101102-0cd89d239be3/go.mod h1:CXw6m8BhVOb0KBkdE0EazGxtrBZ6WUZWiZZa+itoa8g=
-go.x2ox.com/sorbifolia/crpc v0.0.0-20240903102744-f19783a0dc04 h1:RjjCP3YBDYDCbolH7Ch3qzh7bJ7hLVCSMEJUYLvq9Yc=
-go.x2ox.com/sorbifolia/crpc v0.0.0-20240903102744-f19783a0dc04/go.mod h1:CXw6m8BhVOb0KBkdE0EazGxtrBZ6WUZWiZZa+itoa8g=
-go.x2ox.com/sorbifolia/crpc v0.0.0-20240903103203-48b4f66ec535 h1:keWvWwH0sBIeYbZ9gkO1epXc42O49he/N93W0PpEh8c=
-go.x2ox.com/sorbifolia/crpc v0.0.0-20240903103203-48b4f66ec535/go.mod h1:CXw6m8BhVOb0KBkdE0EazGxtrBZ6WUZWiZZa+itoa8g=
+go.x2ox.com/sorbifolia/crpc v0.0.0-20240903130246-8d62934de94c h1:23T2S4XOcBs0dYbFAiRYAyXPQe4dwTpnadY+SV0jGKQ=
+go.x2ox.com/sorbifolia/crpc v0.0.0-20240903130246-8d62934de94c/go.mod h1:mxFXa2y6+HUHRB0ruciaPsnJ8AkNvmafOFS3nIGBqkQ=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
