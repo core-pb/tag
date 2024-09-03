@@ -1,29 +1,29 @@
 package client
 
 import (
-	"crypto/tls"
-	"fmt"
-	"strings"
-	"time"
-
 	"connectrpc.com/connect"
-	"github.com/bufbuild/httplb"
-	"github.com/bufbuild/httplb/picker"
 	"github.com/core-pb/tag/tag/v1/tagconnect"
+	"go.x2ox.com/sorbifolia/crpc"
 )
 
-var lbc = httplb.NewClient(
-	httplb.WithPicker(picker.NewPowerOfTwo),
-	httplb.WithTLSConfig(&tls.Config{InsecureSkipVerify: true}, time.Second*3),
-)
+type Client struct {
+	hc   connect.HTTPClient
+	addr string
+	opts []connect.ClientOption
+}
 
-func Client(hc connect.HTTPClient, addr string, opts ...connect.ClientOption) tagconnect.BaseClient {
-	if hc == nil {
-		hc = lbc
-	}
-	if !strings.HasPrefix(addr, "https://") {
-		addr = fmt.Sprintf("https://%s", addr)
-	}
+func New(hc connect.HTTPClient, addr string, opts ...connect.ClientOption) *Client {
+	return &Client{addr: addr, hc: hc, opts: opts}
+}
 
-	return tagconnect.NewBaseClient(hc, addr, append(opts, connect.WithGRPC())...)
+func (c *Client) Base() tagconnect.BaseClient {
+	return crpc.Client(tagconnect.NewBaseClient, c.hc, c.addr, c.opts...)
+}
+
+func (c *Client) Internal() tagconnect.InternalClient {
+	return crpc.Client(tagconnect.NewInternalClient, c.hc, c.addr, c.opts...)
+}
+
+func (c *Client) Relationship() tagconnect.RelationshipClient {
+	return crpc.Client(tagconnect.NewRelationshipClient, c.hc, c.addr, c.opts...)
 }

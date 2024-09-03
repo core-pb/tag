@@ -11,7 +11,7 @@ import (
 )
 
 func TestListType(t *testing.T) {
-	resp, err := client.ListType(ctx, connect.NewRequest(&v1.ListTypeRequest{
+	resp, err := client.Base().ListType(ctx, connect.NewRequest(&v1.ListTypeRequest{
 		Pagination: &query.Pagination{Page: 1, PageSize: 10},
 		Sort:       nil,
 		Id:         nil,
@@ -30,7 +30,7 @@ func TestListType(t *testing.T) {
 }
 
 func TestSetType(t *testing.T) {
-	resp, err := client.SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
+	resp, err := client.Base().SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
 		Key: "test1",
 	}))
 	if err != nil {
@@ -42,7 +42,7 @@ func TestSetType(t *testing.T) {
 }
 
 func TestSetTypeInfo(t *testing.T) {
-	resp, err := client.SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
+	resp, err := client.Base().SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
 		Key: "user:role",
 	}))
 	if err != nil {
@@ -50,7 +50,7 @@ func TestSetTypeInfo(t *testing.T) {
 	}
 
 	var set *connect.Response[v1.SetTypeInfoResponse]
-	set, err = client.SetTypeInfo(ctx, connect.NewRequest(&v1.SetTypeInfoRequest{
+	set, err = client.Base().SetTypeInfo(ctx, connect.NewRequest(&v1.SetTypeInfoRequest{
 		Id: resp.Msg.Data.Id,
 		Info: &structpb.Struct{Fields: map[string]*structpb.Value{
 			"name": structpb.NewStringValue("is name"),
@@ -64,14 +64,14 @@ func TestSetTypeInfo(t *testing.T) {
 }
 
 func TestUpdateTypeInherit(t *testing.T) {
-	resp, err := client.SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
+	resp, err := client.Base().SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
 		Key: "user:role",
 	}))
 	if err != nil {
 		return
 	}
 
-	_, err = client.UpdateTypeInherit(ctx, connect.NewRequest(&v1.UpdateTypeInheritRequest{
+	_, err = client.Base().UpdateTypeInherit(ctx, connect.NewRequest(&v1.UpdateTypeInheritRequest{
 		Id:      []uint64{resp.Msg.Data.Id},
 		Inherit: false,
 	}))
@@ -80,7 +80,7 @@ func TestUpdateTypeInherit(t *testing.T) {
 		return
 	}
 
-	_, err = client.UpdateTypeInherit(ctx, connect.NewRequest(&v1.UpdateTypeInheritRequest{
+	_, err = client.Base().UpdateTypeInherit(ctx, connect.NewRequest(&v1.UpdateTypeInheritRequest{
 		Id:      []uint64{resp.Msg.Data.Id},
 		Inherit: true,
 	}))
@@ -91,14 +91,14 @@ func TestUpdateTypeInherit(t *testing.T) {
 }
 
 func TestUpdateTypeExclusive(t *testing.T) {
-	resp, err := client.SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
+	resp, err := client.Base().SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
 		Key: "user:role",
 	}))
 	if err != nil {
 		return
 	}
 
-	_, err = client.UpdateTypeExclusive(ctx, connect.NewRequest(&v1.UpdateTypeExclusiveRequest{
+	_, err = client.Base().UpdateTypeExclusive(ctx, connect.NewRequest(&v1.UpdateTypeExclusiveRequest{
 		Id:        []uint64{resp.Msg.Data.Id},
 		Exclusive: false,
 	}))
@@ -107,7 +107,7 @@ func TestUpdateTypeExclusive(t *testing.T) {
 		return
 	}
 
-	_, err = client.UpdateTypeExclusive(ctx, connect.NewRequest(&v1.UpdateTypeExclusiveRequest{
+	_, err = client.Base().UpdateTypeExclusive(ctx, connect.NewRequest(&v1.UpdateTypeExclusiveRequest{
 		Id:        []uint64{resp.Msg.Data.Id},
 		Exclusive: true,
 	}))
@@ -118,14 +118,14 @@ func TestUpdateTypeExclusive(t *testing.T) {
 }
 
 func TestDeleteType(t *testing.T) {
-	resp, err := client.SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
+	resp, err := client.Base().SetType(ctx, connect.NewRequest(&v1.SetTypeRequest{
 		Key: "user:role",
 	}))
 	if err != nil {
 		return
 	}
 
-	_, err = client.DeleteType(ctx, connect.NewRequest(&v1.DeleteTypeRequest{
+	_, err = client.Base().DeleteType(ctx, connect.NewRequest(&v1.DeleteTypeRequest{
 		Id: []uint64{resp.Msg.Data.Id},
 	}))
 	if err != nil {
