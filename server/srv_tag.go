@@ -12,7 +12,7 @@ import (
 )
 
 func (base) ListTag(ctx context.Context, req *connect.Request[v1.ListTagRequest]) (*connect.Response[v1.ListTagResponse], error) {
-	sq := db.NewSelect().Model(&Type{})
+	sq := db.NewSelect().Model(&Tag{})
 	sq = InOrEqPure(sq, `"tag".id`, req.Msg.Id)
 	sq = InOrEqPure(sq, `"tag".key`, req.Msg.Key)
 	sq = InOrEqPure(sq, `"tag".type_id`, req.Msg.TypeId)
