@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/core-pb/dt/time/v1"
@@ -198,6 +199,73 @@ func (itn) RegisterModule(ctx context.Context, req *connect.Request[v1.RegisterM
 	return connect.NewResponse(&v1.RegisterModuleResponse{Data: m.Module}), nil
 }
 
+func (itn) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagRequest]) (*connect.Response[v1.RegisterTagResponse], error) {
+	arr := make([]*v1.Tag, 0, len(req.Msg.Data))
+	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		for i := range req.Msg.Data {
+			var (
+				tag                     = req.Msg.Data[i]
+				moduleKey, typeKey, key string
+				ok                      bool
+			)
+
+			if moduleKey, key, ok = strings.Cut(tag.GetKey(), ":"); !ok {
+				return errors.New("invalid tag key: notfound module")
+			}
+			if typeKey, _, ok = strings.Cut(key, ":"); !ok {
+				return errors.New("invalid tag key: notfound type")
+			}
+
+			var (
+				typKey = fmt.Sprintf("%s:%s", moduleKey, typeKey)
+
+				module Module
+				typ    Type
+				val    Tag
+			)
+
+			if _, err := tx.NewSelect().Model(&typ).Where("key = ?", typKey).Exec(ctx); err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+				typ.Type = &v1.Type{Key: typKey}
+
+				if _, err = tx.NewInsert().Model(&typ).Exec(ctx); err != nil {
+					return err
+				}
+			}
+			if _, err := tx.NewSelect().Model(&module).Where("key = ?", moduleKey).Exec(ctx); err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+				module.Module = &v1.Module{Key: moduleKey, VisibleType: []uint64{typ.Id}}
+
+				if _, err = tx.NewInsert().Model(&module).Exec(ctx); err != nil {
+					return err
+				}
+			}
+
+			if _, err := tx.NewSelect().Model(&val).Where("key = ?", tag.GetKey()).Exec(ctx); err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+				val.Tag = &v1.Tag{Key: tag.GetKey(), Data: tag.Data, TypeId: typ.Id}
+
+				if _, err = tx.NewInsert().Model(&val).Exec(ctx); err != nil {
+					return err
+				}
+			}
+			arr = append(arr, val.Tag)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, connect.NewError(connect.CodeUnavailable, err)
+	}
+
+	return connect.NewResponse(&v1.RegisterTagResponse{Data: arr}), nil
+}
+
 func (itn) SetTypeWithModule(ctx context.Context, req *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error) {
 	if req.Msg.TypeId == nil {
 		if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
@@ -228,7 +296,7 @@ func (itn) SetTypeWithModule(ctx context.Context, req *connect.Request[v1.SetTyp
 		}); err != nil {
 			return nil, connect.NewError(connect.CodeUnavailable, err)
 		}
-		return nil, nil
+		return connect.NewResponse(&v1.SetTypeWithModuleResponse{}), nil
 	}
 
 	if req.Msg.Info != nil {

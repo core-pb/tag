@@ -44,6 +44,8 @@ const (
 	InternalGetAllByModuleProcedure = "/tag.v1.Internal/GetAllByModule"
 	// InternalRegisterModuleProcedure is the fully-qualified name of the Internal's RegisterModule RPC.
 	InternalRegisterModuleProcedure = "/tag.v1.Internal/RegisterModule"
+	// InternalRegisterTagProcedure is the fully-qualified name of the Internal's RegisterTag RPC.
+	InternalRegisterTagProcedure = "/tag.v1.Internal/RegisterTag"
 	// InternalSetTypeWithModuleProcedure is the fully-qualified name of the Internal's
 	// SetTypeWithModule RPC.
 	InternalSetTypeWithModuleProcedure = "/tag.v1.Internal/SetTypeWithModule"
@@ -66,6 +68,7 @@ var (
 	internalUnbindRelationMethodDescriptor       = internalServiceDescriptor.Methods().ByName("UnbindRelation")
 	internalGetAllByModuleMethodDescriptor       = internalServiceDescriptor.Methods().ByName("GetAllByModule")
 	internalRegisterModuleMethodDescriptor       = internalServiceDescriptor.Methods().ByName("RegisterModule")
+	internalRegisterTagMethodDescriptor          = internalServiceDescriptor.Methods().ByName("RegisterTag")
 	internalSetTypeWithModuleMethodDescriptor    = internalServiceDescriptor.Methods().ByName("SetTypeWithModule")
 	internalDeleteTypeWithModuleMethodDescriptor = internalServiceDescriptor.Methods().ByName("DeleteTypeWithModule")
 	internalSetTagWithModuleMethodDescriptor     = internalServiceDescriptor.Methods().ByName("SetTagWithModule")
@@ -79,6 +82,7 @@ type InternalClient interface {
 	UnbindRelation(context.Context, *connect.Request[v1.UnbindRelationRequest]) (*connect.Response[v1.UnbindRelationResponse], error)
 	GetAllByModule(context.Context, *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error)
 	RegisterModule(context.Context, *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error)
+	RegisterTag(context.Context, *connect.Request[v1.RegisterTagRequest]) (*connect.Response[v1.RegisterTagResponse], error)
 	SetTypeWithModule(context.Context, *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error)
 	DeleteTypeWithModule(context.Context, *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error)
 	SetTagWithModule(context.Context, *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error)
@@ -125,6 +129,12 @@ func NewInternalClient(httpClient connect.HTTPClient, baseURL string, opts ...co
 			connect.WithSchema(internalRegisterModuleMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		registerTag: connect.NewClient[v1.RegisterTagRequest, v1.RegisterTagResponse](
+			httpClient,
+			baseURL+InternalRegisterTagProcedure,
+			connect.WithSchema(internalRegisterTagMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 		setTypeWithModule: connect.NewClient[v1.SetTypeWithModuleRequest, v1.SetTypeWithModuleResponse](
 			httpClient,
 			baseURL+InternalSetTypeWithModuleProcedure,
@@ -159,6 +169,7 @@ type internalClient struct {
 	unbindRelation       *connect.Client[v1.UnbindRelationRequest, v1.UnbindRelationResponse]
 	getAllByModule       *connect.Client[v1.GetAllByModuleRequest, v1.GetAllByModuleResponse]
 	registerModule       *connect.Client[v1.RegisterModuleRequest, v1.RegisterModuleResponse]
+	registerTag          *connect.Client[v1.RegisterTagRequest, v1.RegisterTagResponse]
 	setTypeWithModule    *connect.Client[v1.SetTypeWithModuleRequest, v1.SetTypeWithModuleResponse]
 	deleteTypeWithModule *connect.Client[v1.DeleteTypeWithModuleRequest, v1.DeleteTypeWithModuleResponse]
 	setTagWithModule     *connect.Client[v1.SetTagWithModuleRequest, v1.SetTagWithModuleResponse]
@@ -190,6 +201,11 @@ func (c *internalClient) RegisterModule(ctx context.Context, req *connect.Reques
 	return c.registerModule.CallUnary(ctx, req)
 }
 
+// RegisterTag calls tag.v1.Internal.RegisterTag.
+func (c *internalClient) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagRequest]) (*connect.Response[v1.RegisterTagResponse], error) {
+	return c.registerTag.CallUnary(ctx, req)
+}
+
 // SetTypeWithModule calls tag.v1.Internal.SetTypeWithModule.
 func (c *internalClient) SetTypeWithModule(ctx context.Context, req *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error) {
 	return c.setTypeWithModule.CallUnary(ctx, req)
@@ -217,6 +233,7 @@ type InternalHandler interface {
 	UnbindRelation(context.Context, *connect.Request[v1.UnbindRelationRequest]) (*connect.Response[v1.UnbindRelationResponse], error)
 	GetAllByModule(context.Context, *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error)
 	RegisterModule(context.Context, *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error)
+	RegisterTag(context.Context, *connect.Request[v1.RegisterTagRequest]) (*connect.Response[v1.RegisterTagResponse], error)
 	SetTypeWithModule(context.Context, *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error)
 	DeleteTypeWithModule(context.Context, *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error)
 	SetTagWithModule(context.Context, *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error)
@@ -259,6 +276,12 @@ func NewInternalHandler(svc InternalHandler, opts ...connect.HandlerOption) (str
 		connect.WithSchema(internalRegisterModuleMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	internalRegisterTagHandler := connect.NewUnaryHandler(
+		InternalRegisterTagProcedure,
+		svc.RegisterTag,
+		connect.WithSchema(internalRegisterTagMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	internalSetTypeWithModuleHandler := connect.NewUnaryHandler(
 		InternalSetTypeWithModuleProcedure,
 		svc.SetTypeWithModule,
@@ -295,6 +318,8 @@ func NewInternalHandler(svc InternalHandler, opts ...connect.HandlerOption) (str
 			internalGetAllByModuleHandler.ServeHTTP(w, r)
 		case InternalRegisterModuleProcedure:
 			internalRegisterModuleHandler.ServeHTTP(w, r)
+		case InternalRegisterTagProcedure:
+			internalRegisterTagHandler.ServeHTTP(w, r)
 		case InternalSetTypeWithModuleProcedure:
 			internalSetTypeWithModuleHandler.ServeHTTP(w, r)
 		case InternalDeleteTypeWithModuleProcedure:
@@ -330,6 +355,10 @@ func (UnimplementedInternalHandler) GetAllByModule(context.Context, *connect.Req
 
 func (UnimplementedInternalHandler) RegisterModule(context.Context, *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.RegisterModule is not implemented"))
+}
+
+func (UnimplementedInternalHandler) RegisterTag(context.Context, *connect.Request[v1.RegisterTagRequest]) (*connect.Response[v1.RegisterTagResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tag.v1.Internal.RegisterTag is not implemented"))
 }
 
 func (UnimplementedInternalHandler) SetTypeWithModule(context.Context, *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error) {

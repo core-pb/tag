@@ -16,6 +16,7 @@ service Internal {
 
     rpc GetAllByModule(GetAllByModuleRequest) returns (GetAllByModuleResponse) {}
     rpc RegisterModule(RegisterModuleRequest) returns (RegisterModuleResponse) {}
+    rpc RegisterTag(RegisterTagRequest) returns (RegisterTagResponse) {}
 
     rpc SetTypeWithModule(SetTypeWithModuleRequest) returns (SetTypeWithModuleResponse) {}
     rpc DeleteTypeWithModule(DeleteTypeWithModuleRequest) returns (DeleteTypeWithModuleResponse) {}
@@ -81,6 +82,13 @@ message RegisterModuleRequest {
 }
 message RegisterModuleResponse {
     tag.v1.Module data = 1;
+}
+
+message RegisterTagRequest {
+    repeated Tag data = 1;  // only allow write key/data, key: {module-key}:{type-key}:{tag-key}
+}
+message RegisterTagResponse {
+    repeated Tag data = 1;
 }
 
 message SetTypeWithModuleRequest {
