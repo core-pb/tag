@@ -224,7 +224,7 @@ func (itn) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagR
 				val    Tag
 			)
 
-			if _, err := tx.NewSelect().Model(&typ).Where("key = ?", typKey).Exec(ctx); err != nil {
+			if err := tx.NewSelect().Model(&typ).Where("key = ?", typKey).Scan(ctx); err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
 					return err
 				}
@@ -234,7 +234,7 @@ func (itn) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagR
 					return err
 				}
 			}
-			if _, err := tx.NewSelect().Model(&module).Where("key = ?", moduleKey).Exec(ctx); err != nil {
+			if err := tx.NewSelect().Model(&module).Where("key = ?", moduleKey).Scan(ctx); err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
 					return err
 				}
@@ -245,7 +245,7 @@ func (itn) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagR
 				}
 			}
 
-			if _, err := tx.NewSelect().Model(&val).Where("key = ?", tag.GetKey()).Exec(ctx); err != nil {
+			if err := tx.NewSelect().Model(&val).Where("key = ?", tag.GetKey()).Scan(ctx); err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
 					return err
 				}
