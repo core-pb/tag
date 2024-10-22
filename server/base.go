@@ -1,17 +1,11 @@
-package main
+package server
 
 import (
 	"context"
 
 	"github.com/core-pb/dt/time/v1"
 	"github.com/core-pb/tag/tag/v1"
-	"github.com/redis/rueidis"
 	"github.com/uptrace/bun"
-)
-
-var (
-	db    *bun.DB
-	cache rueidis.Client
 )
 
 type Type struct {

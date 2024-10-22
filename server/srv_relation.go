@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -12,11 +12,12 @@ import (
 )
 
 type relationship struct {
+	*Server
 	tagconnect.UnimplementedRelationshipHandler
 }
 
-func (relationship) ListRelation(ctx context.Context, req *connect.Request[v1.ListRelationRequest]) (*connect.Response[v1.ListRelationResponse], error) {
-	sq := db.NewSelect().Model(&Relation{})
+func (x relationship) ListRelation(ctx context.Context, req *connect.Request[v1.ListRelationRequest]) (*connect.Response[v1.ListRelationResponse], error) {
+	sq := x.db.NewSelect().Model(&Relation{})
 	sq = InOrEqPure(sq, `"relation".module_id`, req.Msg.ModuleId)
 	sq = InOrEqPure(sq, `"relation".external_id`, req.Msg.ExternalId)
 	sq = InOrEqPure(sq, `"relation".tag_id`, req.Msg.TagId)
@@ -37,7 +38,7 @@ func (relationship) ListRelation(ctx context.Context, req *connect.Request[v1.Li
 	return connect.NewResponse(&v1.ListRelationResponse{Data: arr, Count: int64(count)}), nil
 }
 
-func (relationship) SetRelation(ctx context.Context, req *connect.Request[v1.SetRelationRequest]) (*connect.Response[v1.SetRelationResponse], error) {
+func (x relationship) SetRelation(ctx context.Context, req *connect.Request[v1.SetRelationRequest]) (*connect.Response[v1.SetRelationResponse], error) {
 	var (
 		module                   Module
 		tag                      Tag
@@ -52,7 +53,7 @@ func (relationship) SetRelation(ctx context.Context, req *connect.Request[v1.Set
 		}}
 	) // TODO delete cache: parentTagID deleteTagID req.Msg.TagId
 
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if err := tx.NewSelect().For("UPDATE").Model(&module).Where("id = ?", req.Msg.ModuleId).Scan(ctx); err != nil {
 			return err
 		}
@@ -110,10 +111,10 @@ func (relationship) SetRelation(ctx context.Context, req *connect.Request[v1.Set
 	return connect.NewResponse(&v1.SetRelationResponse{}), nil
 }
 
-func (relationship) DeleteRelation(ctx context.Context, req *connect.Request[v1.DeleteRelationRequest]) (*connect.Response[v1.DeleteRelationResponse], error) {
+func (x relationship) DeleteRelation(ctx context.Context, req *connect.Request[v1.DeleteRelationRequest]) (*connect.Response[v1.DeleteRelationResponse], error) {
 	var cleanID []uint64
 
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().For("UPDATE").Model(&Relation{}).Where(
 			"module_id = ? AND external_id = ? AND tag_id = ?", req.Msg.ModuleId, req.Msg.ExternalId, req.Msg.TagId,
 		).Exists(ctx); err != nil {
@@ -146,8 +147,8 @@ func (relationship) DeleteRelation(ctx context.Context, req *connect.Request[v1.
 	return connect.NewResponse(&v1.DeleteRelationResponse{}), nil
 }
 
-func (relationship) DestroyExternalRelation(ctx context.Context, req *connect.Request[v1.DestroyExternalRelationRequest]) (*connect.Response[v1.DestroyExternalRelationResponse], error) {
-	tx := db.NewDelete().Model(&Relation{}).Where("module_id = ?", req.Msg.ModuleId)
+func (x relationship) DestroyExternalRelation(ctx context.Context, req *connect.Request[v1.DestroyExternalRelationRequest]) (*connect.Response[v1.DestroyExternalRelationResponse], error) {
+	tx := x.db.NewDelete().Model(&Relation{}).Where("module_id = ?", req.Msg.ModuleId)
 	if len(req.Msg.ExternalId) != 0 {
 		tx = tx.Where("external_id IN (?)", bun.In(req.Msg.ExternalId))
 	}
@@ -159,8 +160,8 @@ func (relationship) DestroyExternalRelation(ctx context.Context, req *connect.Re
 	return connect.NewResponse(&v1.DestroyExternalRelationResponse{}), nil
 }
 
-func (relationship) DestroyTagRelation(ctx context.Context, req *connect.Request[v1.DestroyTagRelationRequest]) (*connect.Response[v1.DestroyTagRelationResponse], error) {
-	tx := db.NewDelete().Model(&Relation{}).Where("tag_id = ?", req.Msg.TagId)
+func (x relationship) DestroyTagRelation(ctx context.Context, req *connect.Request[v1.DestroyTagRelationRequest]) (*connect.Response[v1.DestroyTagRelationResponse], error) {
+	tx := x.db.NewDelete().Model(&Relation{}).Where("tag_id = ?", req.Msg.TagId)
 	if len(req.Msg.ModuleId) != 0 {
 		tx = tx.Where("module_id IN (?)", bun.In(req.Msg.ModuleId))
 	}

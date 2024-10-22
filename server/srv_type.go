@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func (base) ListType(ctx context.Context, req *connect.Request[v1.ListTypeRequest]) (*connect.Response[v1.ListTypeResponse], error) {
-	sq := db.NewSelect().Model(&Type{})
+func (x base) ListType(ctx context.Context, req *connect.Request[v1.ListTypeRequest]) (*connect.Response[v1.ListTypeResponse], error) {
+	sq := x.db.NewSelect().Model(&Type{})
 	sq = InOrEqPure(sq, `"type".id`, req.Msg.Id)
 	sq = InOrEqPure(sq, `"type".key`, req.Msg.Key)
 	sq = QueryFormStruct(sq, `"type".info`, req.Msg.Info)
@@ -44,13 +44,13 @@ func (base) ListType(ctx context.Context, req *connect.Request[v1.ListTypeReques
 	return connect.NewResponse(&v1.ListTypeResponse{Data: arr, Count: int64(count)}), nil
 }
 
-func (base) SetType(ctx context.Context, req *connect.Request[v1.SetTypeRequest]) (*connect.Response[v1.SetTypeResponse], error) {
+func (x base) SetType(ctx context.Context, req *connect.Request[v1.SetTypeRequest]) (*connect.Response[v1.SetTypeResponse], error) {
 	if !isInvalidKey(req.Msg.Key) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errInvalidKey)
 	}
 
 	var val Type
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if req.Msg.Id != 0 {
 			_, err := tx.NewUpdate().Returning("*").Model(&val).Where("id = ?", req.Msg.Key).Set(`"key" = ?`, req.Msg.Key).Exec(ctx)
 			return err
@@ -70,17 +70,17 @@ func (base) SetType(ctx context.Context, req *connect.Request[v1.SetTypeRequest]
 	return connect.NewResponse(&v1.SetTypeResponse{Data: val.Type}), nil
 }
 
-func (base) SetTypeInfo(ctx context.Context, req *connect.Request[v1.SetTypeInfoRequest]) (*connect.Response[v1.SetTypeInfoResponse], error) {
+func (x base) SetTypeInfo(ctx context.Context, req *connect.Request[v1.SetTypeInfoRequest]) (*connect.Response[v1.SetTypeInfoResponse], error) {
 	var val Type
-	if _, err := db.NewUpdate().Model(&val).Where("id = ?", req.Msg.Id).Set("info = ?", req.Msg.Info).Returning("*").Exec(ctx); err != nil {
+	if _, err := x.db.NewUpdate().Model(&val).Where("id = ?", req.Msg.Id).Set("info = ?", req.Msg.Info).Returning("*").Exec(ctx); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
 	return connect.NewResponse(&v1.SetTypeInfoResponse{Data: val.Type}), nil
 }
 
-func (base) DeleteType(ctx context.Context, req *connect.Request[v1.DeleteTypeRequest]) (*connect.Response[v1.DeleteTypeResponse], error) {
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+func (x base) DeleteType(ctx context.Context, req *connect.Request[v1.DeleteTypeRequest]) (*connect.Response[v1.DeleteTypeResponse], error) {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
 		} else if has {
@@ -99,8 +99,8 @@ func (base) DeleteType(ctx context.Context, req *connect.Request[v1.DeleteTypeRe
 	return connect.NewResponse(&v1.DeleteTypeResponse{}), nil
 }
 
-func (base) UpdateTypeInherit(ctx context.Context, req *connect.Request[v1.UpdateTypeInheritRequest]) (*connect.Response[v1.UpdateTypeInheritResponse], error) {
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+func (x base) UpdateTypeInherit(ctx context.Context, req *connect.Request[v1.UpdateTypeInheritRequest]) (*connect.Response[v1.UpdateTypeInheritResponse], error) {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
 		} else if has {
@@ -123,8 +123,8 @@ func (base) UpdateTypeInherit(ctx context.Context, req *connect.Request[v1.Updat
 	return connect.NewResponse(&v1.UpdateTypeInheritResponse{}), nil
 }
 
-func (base) UpdateTypeExclusive(ctx context.Context, req *connect.Request[v1.UpdateTypeExclusiveRequest]) (*connect.Response[v1.UpdateTypeExclusiveResponse], error) {
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+func (x base) UpdateTypeExclusive(ctx context.Context, req *connect.Request[v1.UpdateTypeExclusiveRequest]) (*connect.Response[v1.UpdateTypeExclusiveResponse], error) {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
 		} else if has {

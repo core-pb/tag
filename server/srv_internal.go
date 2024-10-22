@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -16,10 +16,12 @@ import (
 )
 
 type itn struct {
+	*Server
+
 	tagconnect.UnimplementedInternalHandler
 }
 
-func (itn) GetTagIDTreeize(ctx context.Context, req *connect.Request[v1.GetTagIDTreeizeRequest]) (*connect.Response[v1.GetTagIDTreeizeResponse], error) {
+func (x itn) GetTagIDTreeize(ctx context.Context, req *connect.Request[v1.GetTagIDTreeizeRequest]) (*connect.Response[v1.GetTagIDTreeizeResponse], error) {
 	var (
 		typ = new(v1.Type)
 		arr []v1.FlatTagID
@@ -28,12 +30,12 @@ func (itn) GetTagIDTreeize(ctx context.Context, req *connect.Request[v1.GetTagID
 	switch v := req.Msg.GetFrom().(type) {
 	case *v1.GetTagIDTreeizeRequest_TagId:
 		const findTagType = `SELECT type_id FROM "tag" WHERE id = ?`
-		if err := db.NewSelect().Model(&Type{}).Join(`INNER JOIN (`+findTagType+`) AS typ ON typ.type_id = "type".id`, v.TagId).Scan(ctx, typ); err != nil {
+		if err := x.db.NewSelect().Model(&Type{}).Join(`INNER JOIN (`+findTagType+`) AS typ ON typ.type_id = "type".id`, v.TagId).Scan(ctx, typ); err != nil {
 			return nil, connect.NewError(connect.CodeUnavailable, err)
 		}
 
 	case *v1.GetTagIDTreeizeRequest_TypeId:
-		if err := db.NewSelect().Model(&Type{}).Where("id = ?", v.TypeId).Scan(ctx, typ); err != nil {
+		if err := x.db.NewSelect().Model(&Type{}).Where("id = ?", v.TypeId).Scan(ctx, typ); err != nil {
 			return nil, connect.NewError(connect.CodeUnavailable, err)
 		}
 
@@ -41,7 +43,7 @@ func (itn) GetTagIDTreeize(ctx context.Context, req *connect.Request[v1.GetTagID
 		return nil, connect.NewError(connect.CodeUnimplemented, errors.New("unknown from is not implemented"))
 	}
 
-	if err := db.NewSelect().Model(&Tag{}).Column("id", "parent_id").Where(`"type_id" = ?`, typ.Id).Scan(ctx, &arr); err != nil {
+	if err := x.db.NewSelect().Model(&Tag{}).Column("id", "parent_id").Where(`"type_id" = ?`, typ.Id).Scan(ctx, &arr); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
@@ -51,7 +53,7 @@ func (itn) GetTagIDTreeize(ctx context.Context, req *connect.Request[v1.GetTagID
 	return connect.NewResponse(&v1.GetTagIDTreeizeResponse{Data: tree, Type: typ}), nil
 }
 
-func (itn) BindRelation(ctx context.Context, req *connect.Request[v1.BindRelationRequest]) (*connect.Response[v1.BindRelationResponse], error) {
+func (x itn) BindRelation(ctx context.Context, req *connect.Request[v1.BindRelationRequest]) (*connect.Response[v1.BindRelationResponse], error) {
 	var (
 		module                   Module
 		tag                      Tag
@@ -66,7 +68,7 @@ func (itn) BindRelation(ctx context.Context, req *connect.Request[v1.BindRelatio
 		}}
 	)
 
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if err := tx.NewSelect().For("UPDATE").Model(&module).Where("id = ?", req.Msg.ModuleId).Scan(ctx); err != nil {
 			return err
 		}
@@ -126,10 +128,10 @@ func (itn) BindRelation(ctx context.Context, req *connect.Request[v1.BindRelatio
 	return connect.NewResponse(&v1.BindRelationResponse{CleanTagId: deleteTagID, InheritTagId: parentTagID}), nil
 }
 
-func (itn) UnbindRelation(ctx context.Context, req *connect.Request[v1.UnbindRelationRequest]) (*connect.Response[v1.UnbindRelationResponse], error) {
+func (x itn) UnbindRelation(ctx context.Context, req *connect.Request[v1.UnbindRelationRequest]) (*connect.Response[v1.UnbindRelationResponse], error) {
 	var cleanID []uint64
 
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().For("UPDATE").Model(&Relation{}).Where(
 			"module_id = ? AND external_id = ? AND tag_id = ?", req.Msg.ModuleId, req.Msg.ExternalId, req.Msg.TagId,
 		).Exists(ctx); err != nil {
@@ -162,28 +164,28 @@ func (itn) UnbindRelation(ctx context.Context, req *connect.Request[v1.UnbindRel
 	return connect.NewResponse(&v1.UnbindRelationResponse{CleanTagId: cleanID}), nil
 }
 
-func (itn) GetAllByModule(ctx context.Context, req *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error) {
+func (x itn) GetAllByModule(ctx context.Context, req *connect.Request[v1.GetAllByModuleRequest]) (*connect.Response[v1.GetAllByModuleResponse], error) {
 	var (
 		typeID []uint64
 		typ    []*v1.Type
 		tag    []*v1.Tag
 	)
-	if err := db.NewSelect().Model(&Module{}).ColumnExpr("DISTINCT unnest(visible_type)").Where("id = ?", req.Msg.ModuleId).Scan(ctx, &typeID); err != nil {
+	if err := x.db.NewSelect().Model(&Module{}).ColumnExpr("DISTINCT unnest(visible_type)").Where("id = ?", req.Msg.ModuleId).Scan(ctx, &typeID); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
-	if err := db.NewSelect().Model(&Type{}).Where("id IN (?)", bun.In(typeID)).Scan(ctx, &typ); err != nil {
+	if err := x.db.NewSelect().Model(&Type{}).Where("id IN (?)", bun.In(typeID)).Scan(ctx, &typ); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
-	if err := db.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(typeID)).Scan(ctx, &tag); err != nil {
+	if err := x.db.NewSelect().Model(&Tag{}).Where("type_id IN (?)", bun.In(typeID)).Scan(ctx, &tag); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
 	return connect.NewResponse(&v1.GetAllByModuleResponse{Type: typ, Tag: tag}), nil
 }
 
-func (itn) RegisterModule(ctx context.Context, req *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error) {
+func (x itn) RegisterModule(ctx context.Context, req *connect.Request[v1.RegisterModuleRequest]) (*connect.Response[v1.RegisterModuleResponse], error) {
 	var m Module
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if err := tx.NewSelect().Model(&m).Where(`"key" = ?`, req.Msg.Key).Scan(ctx); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				m.Module = &v1.Module{Key: req.Msg.Key}
@@ -199,9 +201,9 @@ func (itn) RegisterModule(ctx context.Context, req *connect.Request[v1.RegisterM
 	return connect.NewResponse(&v1.RegisterModuleResponse{Data: m.Module}), nil
 }
 
-func (itn) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagRequest]) (*connect.Response[v1.RegisterTagResponse], error) {
+func (x itn) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagRequest]) (*connect.Response[v1.RegisterTagResponse], error) {
 	arr := make([]*v1.Tag, 0, len(req.Msg.Data))
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		for i := range req.Msg.Data {
 			var (
 				tag                     = req.Msg.Data[i]
@@ -266,9 +268,9 @@ func (itn) RegisterTag(ctx context.Context, req *connect.Request[v1.RegisterTagR
 	return connect.NewResponse(&v1.RegisterTagResponse{Data: arr}), nil
 }
 
-func (itn) SetTypeWithModule(ctx context.Context, req *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error) {
+func (x itn) SetTypeWithModule(ctx context.Context, req *connect.Request[v1.SetTypeWithModuleRequest]) (*connect.Response[v1.SetTypeWithModuleResponse], error) {
 	if req.Msg.TypeId == nil {
-		if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 			var m Module
 			if err := tx.NewSelect().Model(&m).For("UPDATE").Where(`id = ?`, req.Msg.ModuleId).Scan(ctx); err != nil {
 				return err
@@ -324,8 +326,8 @@ func (itn) SetTypeWithModule(ctx context.Context, req *connect.Request[v1.SetTyp
 	return connect.NewResponse(&v1.SetTypeWithModuleResponse{}), nil
 }
 
-func (itn) DeleteTypeWithModule(ctx context.Context, req *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error) {
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+func (x itn) DeleteTypeWithModule(ctx context.Context, req *connect.Request[v1.DeleteTypeWithModuleRequest]) (*connect.Response[v1.DeleteTypeWithModuleResponse], error) {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		var m Module
 		if err := tx.NewSelect().Model(&m).For("UPDATE").Where(`id = ?`, req.Msg.ModuleId).Scan(ctx); err != nil {
 			return err
@@ -353,9 +355,9 @@ func (itn) DeleteTypeWithModule(ctx context.Context, req *connect.Request[v1.Del
 	return connect.NewResponse(&v1.DeleteTypeWithModuleResponse{}), nil
 }
 
-func (itn) SetTagWithModule(ctx context.Context, req *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error) {
+func (x itn) SetTagWithModule(ctx context.Context, req *connect.Request[v1.SetTagWithModuleRequest]) (*connect.Response[v1.SetTagWithModuleResponse], error) {
 	if req.Msg.TagId == nil {
-		if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 			var (
 				m   Module
 				typ Type
@@ -425,8 +427,8 @@ func (itn) SetTagWithModule(ctx context.Context, req *connect.Request[v1.SetTagW
 	return connect.NewResponse(&v1.SetTagWithModuleResponse{}), nil
 }
 
-func (itn) DeleteTagWithModule(ctx context.Context, req *connect.Request[v1.DeleteTagWithModuleRequest]) (*connect.Response[v1.DeleteTagWithModuleResponse], error) {
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+func (x itn) DeleteTagWithModule(ctx context.Context, req *connect.Request[v1.DeleteTagWithModuleRequest]) (*connect.Response[v1.DeleteTagWithModuleResponse], error) {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Module{}).For("UPDATE").Where(`id = ?`, req.Msg.ModuleId).Exists(ctx); err != nil {
 			return err
 		} else if !has {

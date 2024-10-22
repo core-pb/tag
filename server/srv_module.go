@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -14,11 +14,12 @@ import (
 )
 
 type base struct {
+	*Server
 	tagconnect.UnimplementedBaseHandler
 }
 
-func (base) ListModule(ctx context.Context, req *connect.Request[v1.ListModuleRequest]) (*connect.Response[v1.ListModuleResponse], error) {
-	sq := db.NewSelect().Model(&Module{})
+func (x base) ListModule(ctx context.Context, req *connect.Request[v1.ListModuleRequest]) (*connect.Response[v1.ListModuleResponse], error) {
+	sq := x.db.NewSelect().Model(&Module{})
 	sq = InOrEqPure(sq, `"module".id`, req.Msg.Id)
 	sq = InOrEqPure(sq, `"module".key`, req.Msg.Key)
 	sq = QueryFormStruct(sq, `"module".info`, req.Msg.Info)
@@ -37,13 +38,13 @@ func (base) ListModule(ctx context.Context, req *connect.Request[v1.ListModuleRe
 	return connect.NewResponse(&v1.ListModuleResponse{Data: arr, Count: int64(count)}), nil
 }
 
-func (base) SetModule(ctx context.Context, req *connect.Request[v1.SetModuleRequest]) (*connect.Response[v1.SetModuleResponse], error) {
+func (x base) SetModule(ctx context.Context, req *connect.Request[v1.SetModuleRequest]) (*connect.Response[v1.SetModuleResponse], error) {
 	if !isInvalidKey(req.Msg.Key) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errInvalidKey)
 	}
 
 	var val Module
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if req.Msg.Id != 0 {
 			_, err := tx.NewUpdate().Returning("*").Model(&val).Where("id = ?", req.Msg.Key).Set(`"key" = ?`, req.Msg.Key).Exec(ctx)
 			return err
@@ -63,17 +64,17 @@ func (base) SetModule(ctx context.Context, req *connect.Request[v1.SetModuleRequ
 	return connect.NewResponse(&v1.SetModuleResponse{Data: val.Module}), nil
 }
 
-func (base) SetModuleInfo(ctx context.Context, req *connect.Request[v1.SetModuleInfoRequest]) (*connect.Response[v1.SetModuleInfoResponse], error) {
+func (x base) SetModuleInfo(ctx context.Context, req *connect.Request[v1.SetModuleInfoRequest]) (*connect.Response[v1.SetModuleInfoResponse], error) {
 	var val Module
-	if _, err := db.NewUpdate().Model(&val).Where("id = ?", req.Msg.Id).Set("info = ?", req.Msg.Info).Returning("*").Exec(ctx); err != nil {
+	if _, err := x.db.NewUpdate().Model(&val).Where("id = ?", req.Msg.Id).Set("info = ?", req.Msg.Info).Returning("*").Exec(ctx); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
 	return connect.NewResponse(&v1.SetModuleInfoResponse{Data: val.Module}), nil
 }
 
-func (base) DeleteModule(ctx context.Context, req *connect.Request[v1.DeleteModuleRequest]) (*connect.Response[v1.DeleteModuleResponse], error) {
-	if err := db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+func (x base) DeleteModule(ctx context.Context, req *connect.Request[v1.DeleteModuleRequest]) (*connect.Response[v1.DeleteModuleResponse], error) {
+	if err := x.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		if has, err := tx.NewSelect().Model(&Relation{}).Where("module_id IN (?)", bun.In(req.Msg.Id)).Exists(ctx); err != nil {
 			return err
 		} else if has {
@@ -92,8 +93,8 @@ func (base) DeleteModule(ctx context.Context, req *connect.Request[v1.DeleteModu
 	return connect.NewResponse(&v1.DeleteModuleResponse{}), nil
 }
 
-func (base) UpdateModuleVisibleType(ctx context.Context, req *connect.Request[v1.UpdateModuleVisibleTypeRequest]) (*connect.Response[v1.UpdateModuleVisibleTypeResponse], error) {
-	if _, err := db.NewUpdate().Model(&Module{}).Where("id IN (?)", bun.In(req.Msg.Id)).Set("visible_type = ?", req.Msg.VisibleType).Exec(ctx); err != nil {
+func (x base) UpdateModuleVisibleType(ctx context.Context, req *connect.Request[v1.UpdateModuleVisibleTypeRequest]) (*connect.Response[v1.UpdateModuleVisibleTypeResponse], error) {
+	if _, err := x.db.NewUpdate().Model(&Module{}).Where("id IN (?)", bun.In(req.Msg.Id)).Set("visible_type = ?", req.Msg.VisibleType).Exec(ctx); err != nil {
 		return nil, connect.NewError(connect.CodeUnavailable, err)
 	}
 
